@@ -127,6 +127,6 @@ extraResources:
 # ── Auto-update ───────────────────────────────────────────────────────────────
 publish:
   - provider: github
-    owner: your-github-username
-    repo: monomark
+    owner: mexrood
+    repo: Monomark
     releaseType: release
