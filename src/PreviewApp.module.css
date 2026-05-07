@@ -1,0 +1,290 @@
+.app {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-app);
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* ── Rounded corners (same pattern as main app) ── */
+.corners {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--bg-app);
+  border-style: solid;
+  border-width: 0;
+}
+
+.cornerTL {
+  top: 0; left: 0;
+  border-top-width: 3px; border-left-width: 3px;
+  border-top-left-radius: 12px;
+}
+.cornerTR {
+  top: 0; right: 0;
+  border-top-width: 3px; border-right-width: 3px;
+  border-top-right-radius: 12px;
+}
+.cornerBL {
+  bottom: 0; left: 0;
+  border-bottom-width: 3px; border-left-width: 3px;
+  border-bottom-left-radius: 12px;
+}
+.cornerBR {
+  bottom: 0; right: 0;
+  border-bottom-width: 3px; border-right-width: 3px;
+  border-bottom-right-radius: 12px;
+}
+
+/* ── Header ── */
+.header {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: relative;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+}
+
+/* Invisible full-width drag region behind everything */
+.dragRegion {
+  position: absolute;
+  inset: 0;
+  -webkit-app-region: drag;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-app-region: no-drag;
+}
+
+.fileIcon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.fileName {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+  letter-spacing: -0.01em;
+}
+
+.headerRight {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-right: 10px;
+  position: relative;
+  z-index: 1;
+  -webkit-app-region: no-drag;
+}
+
+.iconBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.iconBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.winControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 4px;
+}
+
+.winBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  color: transparent;
+}
+
+.winClose {
+  background: var(--bg-hover);
+  color: var(--text-tertiary);
+}
+
+.winClose:hover {
+  background: #ff5f57;
+  color: #fff;
+}
+
+/* ── Content ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 32px;
+}
+
+/* Extra vertical space so first heading doesn't feel cramped under header */
+.content :global(.prose) {
+  padding-top: 28px;
+  padding-bottom: 48px;
+}
+
+/* Empty/loading state */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.emptyIcon {
+  color: var(--text-tertiary);
+  opacity: 0.4;
+}
+
+/* ── Footer ── */
+.footer {
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 16px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-app);
+  flex-shrink: 0;
+}
+
+.footerMeta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.footerDir {
+  font-size: 11px;
+  color: var(--text-quaternary, var(--text-tertiary));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.7;
+}
+
+.footerSep {
+  font-size: 11px;
+  color: var(--text-quaternary, var(--text-tertiary));
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.footerFile {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.dismissBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  background: transparent;
+  color: var(--text-tertiary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.dismissBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--border-default);
+}
+
+.saveBtn {
+  padding: 5px 14px;
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  background: var(--accent-muted);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.saveBtn:hover:not(:disabled) {
+  background: var(--accent);
+  color: var(--text-inverse);
+  border-color: var(--accent);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.saveBtnDone {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}

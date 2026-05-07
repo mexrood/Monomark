@@ -1,0 +1,67 @@
+/* ============================================================
+   Custom highlight.js theme — 4 colour roles, deliberately quiet.
+   Imported globally; works for both dark and light via CSS variables.
+   ============================================================ */
+
+/* Base */
+.hljs {
+  color: var(--text-primary);
+  background: transparent;
+}
+
+/* Role 1: keywords, tags, types */
+.hljs-keyword,
+.hljs-tag,
+.hljs-type,
+.hljs-selector-tag,
+.hljs-selector-class,
+.hljs-selector-id,
+.hljs-template-tag,
+.hljs-deletion {
+  color: var(--syntax-keyword);
+}
+
+/* Role 2: strings, attribute values */
+.hljs-string,
+.hljs-attr,
+.hljs-attribute,
+.hljs-template-variable,
+.hljs-addition,
+.hljs-bullet,
+.hljs-regexp {
+  color: var(--syntax-string);
+}
+
+/* Role 3: numbers, literals, built-ins */
+.hljs-number,
+.hljs-literal,
+.hljs-built_in,
+.hljs-meta,
+.hljs-link {
+  color: var(--syntax-number);
+}
+
+/* Role 4: comments (muted, slightly italic) */
+.hljs-comment,
+.hljs-quote,
+.hljs-doctag {
+  color: var(--syntax-comment);
+  font-style: italic;
+}
+
+/* No special colour: functions, variables, names, operators */
+.hljs-function,
+.hljs-variable,
+.hljs-name,
+.hljs-params,
+.hljs-operator,
+.hljs-punctuation,
+.hljs-property,
+.hljs-subst,
+.hljs-section {
+  color: var(--text-primary);
+}
+
+/* Emphasis / strong inside doc-comments */
+.hljs-emphasis { font-style: italic; }
+.hljs-strong { font-weight: 600; }

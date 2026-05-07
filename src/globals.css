@@ -1,0 +1,250 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ============================================
+   Reset
+   ============================================ */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+button:focus { outline: none; }
+button:focus-visible { outline: none; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  /* Window is no longer transparent — background clips to border-radius below */
+  background: var(--bg-app);
+  border-radius: 12px;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  color: var(--text-primary);
+  background: var(--bg-app);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* ============================================
+   Spacing System (4px grid)
+   ============================================ */
+:root {
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+}
+
+/* ============================================
+   Border Radius
+   ============================================ */
+:root {
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+:root {
+  --font-ui: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-nav: 14px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+}
+
+/* ============================================
+   Transitions
+   ============================================ */
+:root {
+  --transition-fast: 100ms ease-out;
+  --transition-normal: 150ms ease-out;
+  --transition-slow: 250ms ease-out;
+  --transition-enter: 250ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-exit: 200ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* ============================================
+   Shadows (used sparingly, mainly light theme)
+   ============================================ */
+:root {
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.18), 0 1px 2px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.24), 0 2px 4px rgba(0,0,0,0.18);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.24);
+  --glow-accent: 0 0 0 3px rgba(255,255,255,0.15);
+  --glow-danger: 0 0 0 3px rgba(255,69,58,0.25);
+  /* Popover shadow — dark theme default */
+  --shadow-popover:
+    0 4px 16px rgba(0,0,0,0.2),
+    0 0 0 1px rgba(255,255,255,0.02);
+}
+
+/* ============================================
+   Dark Theme (default)
+   ============================================ */
+:root,
+[data-theme="dark"] {
+  --bg-app: #131313;
+  --bg-base: #181818;
+  --bg-surface: #1C1C1C;
+  --bg-elevated: #232323;
+  --bg-overlay: #2A2A2A;
+  --bg-input: #1F1F1F;
+
+  --bg-elev-1: var(--bg-elevated);
+  --bg-elev-2: var(--bg-overlay);
+  --bg-elev-3: #313131;
+
+  --syntax-keyword: #a5b4fc;
+  --syntax-string: #86efac;
+  --syntax-number: #fdba74;
+  --syntax-comment: #9ca3af;
+  --code-inline: #ff7b72;
+
+  --border-subtle: rgba(255,255,255,0.04);
+  --border-default: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.14);
+  --border-focus: rgba(255,255,255,0.4);
+
+  --text-primary: #F2F2F2;
+  --text-secondary: #888888;
+  --text-tertiary: #6E6E6E;
+  --text-disabled: #333333;
+  --text-inverse: #131313;
+
+  --accent: #FFFFFF;
+  --accent-hover: rgba(255,255,255,0.8);
+  --accent-muted: rgba(255,255,255,0.1);
+  --accent-glow: rgba(255,255,255,0.15);
+
+  --success: #34C759;
+  --warning: #FF9F0A;
+  --danger: #FF453A;
+  --info: #64D2FF;
+
+  --sticker-yellow: #2D2600;
+  --sticker-yellow-border: #5C4D00;
+  --sticker-yellow-text: #FFD60A;
+  --sticker-blue: #001A2D;
+  --sticker-blue-border: #003D6B;
+  --sticker-blue-text: #64D2FF;
+  --sticker-green: #002D16;
+  --sticker-green-border: #005C2E;
+  --sticker-green-text: #34C759;
+  --sticker-pink: #2D0018;
+  --sticker-pink-border: #5C0033;
+  --sticker-pink-text: #FF375F;
+  --sticker-neutral: #1A1A1A;
+  --sticker-neutral-border: #2A2A2A;
+  --sticker-neutral-text: #EBEBEB;
+}
+
+/* ============================================
+   Light Theme
+   ============================================ */
+[data-theme="light"] {
+  --shadow-popover:
+    0 4px 16px rgba(0,0,0,0.08),
+    0 0 0 1px rgba(0,0,0,0.04);
+
+  --bg-app: #F0F0F0;
+  --bg-base: #E8E8E8;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FAFAFA;
+  --bg-overlay: #F0F0F0;
+  --bg-input: #F5F5F5;
+
+  --bg-elev-1: var(--bg-elevated);
+  --bg-elev-2: var(--bg-overlay);
+  --bg-elev-3: #E0E0E0;
+
+  --syntax-keyword: #5e6ad2;
+  --syntax-string: #2d8a4e;
+  --syntax-number: #c2410c;
+  --syntax-comment: #6b7280;
+  --code-inline: #eb5757;
+
+  --border-subtle: rgba(0,0,0,0.04);
+  --border-default: rgba(0,0,0,0.08);
+  --border-strong: rgba(0,0,0,0.14);
+  --border-focus: rgba(0,0,0,0.3);
+
+  --text-primary: #111111;
+  --text-secondary: #666666;
+  --text-tertiary: #888888;
+  --text-disabled: #CCCCCC;
+  --text-inverse: #FFFFFF;
+
+  --accent: #111111;
+  --accent-hover: rgba(0,0,0,0.7);
+  --accent-muted: rgba(0,0,0,0.08);
+  --accent-glow: rgba(0,0,0,0.12);
+}
+
+/* ============================================
+   Scrollbar
+   ============================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* ============================================
+   Selection
+   ============================================ */
+::selection {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+/* ============================================
+   Utility: no drag (for buttons in title bar)
+   ============================================ */
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+

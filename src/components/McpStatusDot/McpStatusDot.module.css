@@ -1,0 +1,85 @@
+.wrapper {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  z-index: 200;
+  width: 10px;
+  height: 10px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: block;
+  background: var(--text-tertiary);
+  transition: background 200ms ease, transform 120ms ease;
+}
+
+.dot[data-status="on"] {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.5);
+}
+
+.dot:hover {
+  transform: scale(1.3);
+}
+
+.popover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 240px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: var(--shadow-popover);
+  animation: popoverIn 100ms ease;
+}
+
+@keyframes popoverIn {
+  from { opacity: 0; transform: scale(0.95) translateY(4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.popoverRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 4px;
+}
+
+.openSettingsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: background 60ms ease;
+}
+
+.openSettingsRow:hover {
+  background: var(--bg-elevated);
+}
+
+.popoverLabel {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-family: inherit;
+}
+
+.popoverDivider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 2px;
+}

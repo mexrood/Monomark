@@ -1,0 +1,13 @@
+{
+  "enabledMcpjsonServers": ["marrow"],
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const s=require\\('sharp'\\); console.log\\(s.versions\\)\")",
+      "Bash(npm run *)",
+      "Bash(npx vite *)",
+      "Bash(curl -s http://127.0.0.1:7456/health)",
+      "Bash(curl -s -X POST http://127.0.0.1:7456/mcp -H \"Content-Type: application/json\" -H \"Accept: application/json, text/event-stream\" -H \"Authorization: Bearer _wBAwHyMJCyUKlSP3GN5NOkHKO72nV-ARlJf4rK66iY\" -d \"{\\\\\"jsonrpc\\\\\":\\\\\"2.0\\\\\",\\\\\"id\\\\\":1,\\\\\"method\\\\\":\\\\\"initialize\\\\\",\\\\\"params\\\\\":{\\\\\"protocolVersion\\\\\":\\\\\"2024-11-05\\\\\",\\\\\"capabilities\\\\\":{},\\\\\"clientInfo\\\\\":{\\\\\"name\\\\\":\\\\\"test\\\\\",\\\\\"version\\\\\":\\\\\"0.0.1\\\\\"}}}\")",
+      "Bash(findstr -i marrow)"
+    ]
+  }
+}

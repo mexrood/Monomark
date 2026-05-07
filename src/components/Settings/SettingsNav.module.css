@@ -1,0 +1,35 @@
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 12px 10px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13.5px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 100ms ease, color 100ms ease;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.item:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.itemActive {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  font-weight: 500;
+}

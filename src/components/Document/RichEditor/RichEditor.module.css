@@ -1,0 +1,181 @@
+/* ── Editor wrapper ───────────────────────────────────────────────────────── */
+.editorWrap {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  scrollbar-width: none;
+}
+.editorWrap::-webkit-scrollbar {
+  display: none;
+}
+
+/* EditorContent fills the remaining space */
+.editorContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── ProseMirror root ─────────────────────────────────────────────────────── */
+.editorContent :global(.ProseMirror) {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 48px 64px 120px;
+  min-height: 100%;
+  outline: none;
+  caret-color: var(--text-primary);
+  word-wrap: break-word;
+}
+
+/* Focus ring — none; the editor fills the viewport */
+.editorContent :global(.ProseMirror-focused) {
+  outline: none;
+}
+
+/* ── Placeholder ─────────────────────────────────────────────────────────── */
+.editorContent :global(.ProseMirror p.is-editor-empty:first-child::before),
+.editorContent :global(.ProseMirror .is-empty::before) {
+  content: attr(data-placeholder);
+  color: var(--text-tertiary);
+  pointer-events: none;
+  height: 0;
+  float: left;
+}
+
+/* ── Selection ───────────────────────────────────────────────────────────── */
+.editorContent :global(.ProseMirror ::selection) {
+  background: var(--accent-muted);
+}
+
+/* ── Task list checkboxes ────────────────────────────────────────────────── */
+.editorContent :global(.ProseMirror ul[data-type="taskList"]) {
+  list-style: none;
+  padding-left: 4px;
+}
+.editorContent :global(.ProseMirror ul[data-type="taskList"] li) {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 2px 0;
+}
+.editorContent :global(.ProseMirror ul[data-type="taskList"] li > label) {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.editorContent :global(.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]) {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid var(--border-strong);
+  background: transparent;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+.editorContent :global(.ProseMirror ul[data-type="taskList"] li > div) {
+  flex: 1;
+  min-width: 0;
+}
+.editorContent :global(.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div) {
+  opacity: 0.55;
+  text-decoration: line-through;
+  text-decoration-color: var(--text-tertiary);
+}
+
+/* ── Frontmatter card ────────────────────────────────────────────────────── */
+.frontmatterCard {
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 16px 64px 0;
+}
+.frontmatterPre {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: var(--bg-elev-1);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 0;
+  color: var(--text-tertiary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  border: 1px solid var(--border-subtle);
+}
+
+/* ── Bubble menu ─────────────────────────────────────────────────────────── */
+.bubbleMenu {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--bg-elev-2);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  animation: bubbleFadeIn 80ms ease;
+}
+
+@keyframes bubbleFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bubbleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  border-radius: 5px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 100ms ease, color 100ms ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+.bubbleBtn:hover {
+  background: var(--bg-elev-3);
+  color: var(--text-primary);
+}
+.bubbleBtnActive {
+  background: var(--accent-muted);
+  color: var(--text-primary);
+}
+
+.bubbleDivider {
+  width: 1px;
+  height: 16px;
+  background: var(--border-subtle);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.bubbleLinkForm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 2px;
+}
+.bubbleLinkInput {
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--border-strong);
+  border-radius: 5px;
+  background: var(--bg-elev-1);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  outline: none;
+  min-width: 200px;
+}
+.bubbleLinkInput:focus {
+  border-color: var(--accent);
+}

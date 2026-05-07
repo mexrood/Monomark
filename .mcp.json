@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "marrow": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "http://127.0.0.1:7456/mcp",
+        "--allow-http",
+        "--header",
+        "Authorization: Bearer _wBAwHyMJCyUKlSP3GN5NOkHKO72nV-ARlJf4rK66iY"
+      ]
+    }
+  }
+}

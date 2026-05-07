@@ -1,0 +1,132 @@
+appId: dev.monomark.app
+productName: Monomark
+copyright: "Copyright © 2025 Monomark"
+
+# Directories
+directories:
+  output: release
+  buildResources: build
+
+asar: true
+compression: normal
+npmRebuild: false
+afterPack: scripts/afterPack.js
+extraMetadata:
+  dependencies: {}
+
+# Files to include in the app package
+files:
+  - "dist/**/*"
+  - "dist-electron/**/*"
+  - "package.json"
+  - "!node_modules/**"
+  - "!**/*.{md,markdown}"
+  - "!**/*.{ts,tsx,map}"
+  - "!**/*.test.{js,ts}"
+  - "!**/test/**"
+  - "!**/tests/**"
+  - "!**/__tests__/**"
+  - "!**/*.d.ts"
+  - "!**/.git*"
+  - "!**/.editorconfig"
+  - "!**/.eslintrc*"
+  - "!**/tsconfig*.json"
+  - "!**/.prettierrc*"
+  - "!**/CHANGELOG*"
+  - "!**/{README,readme}*"
+  - "!**/example*/**"
+  - "!**/examples/**"
+  - "!**/docs/**"
+  - "!**/doc/**"
+  - "!**/.github/**"
+  - "!**/.claude/**"
+
+# ── Windows ──────────────────────────────────────────────────────────────────
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  # Register .md file association
+  fileAssociations:
+    - ext: md
+      name: Markdown Document
+      description: Markdown file
+      icon: build/icon.ico
+      role: Editor
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  deleteAppDataOnUninstall: false
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Monomark
+  artifactName: "${productName} Setup ${version} ${arch}.exe"
+  include: scripts/installer.nsh
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+mac:
+  icon: build/icon.icns
+  category: public.app-category.productivity
+  darkModeSupport: true
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+  fileAssociations:
+    - ext: md
+      name: Markdown Document
+      role: Editor
+      icon: build/icon.icns
+  entitlementsInherit: build/entitlements.mac.plist
+  hardenedRuntime: true
+  gatekeeperAssess: false
+
+dmg:
+  title: "Monomark ${version}"
+  background: build/dmg-background.png
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 150
+      y: 185
+      type: file
+    - x: 390
+      y: 185
+      type: link
+      path: /Applications
+
+# ── Linux ─────────────────────────────────────────────────────────────────────
+linux:
+  icon: build/icon.png
+  category: Office
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  fileAssociations:
+    - ext: md
+      name: Markdown Document
+      mimeType: text/markdown
+
+# ── Extra resources (available at runtime via process.resourcesPath) ──────────
+extraResources:
+  - from: build/icon.ico
+    to: tray.ico
+  - from: build/icons/32x32.png
+    to: tray.png
+
+# ── Auto-update ───────────────────────────────────────────────────────────────
+publish:
+  - provider: github
+    owner: your-github-username
+    repo: monomark
+    releaseType: release

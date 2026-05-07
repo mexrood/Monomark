@@ -1,0 +1,20 @@
+.view {
+  flex: 1;
+  display: flex;
+  overflow-y: auto;
+}
+
+.content {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 48px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 28px;
+  letter-spacing: -0.02em;
+}

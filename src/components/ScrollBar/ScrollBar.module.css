@@ -1,0 +1,27 @@
+.track {
+  position: absolute;
+  right: 4px;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  z-index: 200;
+  pointer-events: none;
+}
+
+.thumb {
+  position: absolute;
+  right: 0;
+  width: 4px;
+  border-radius: 2px;
+  background: rgba(140, 140, 140, 0.45);
+  transition: background 150ms;
+  pointer-events: auto;
+  cursor: grab;
+}
+.thumb:hover {
+  background: rgba(160, 160, 160, 0.65);
+}
+.thumb:active {
+  cursor: grabbing;
+  background: rgba(180, 180, 180, 0.75);
+}

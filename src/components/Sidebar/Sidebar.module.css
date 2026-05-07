@@ -1,0 +1,422 @@
+.sidebar {
+  height: 100%;
+  overflow: visible;
+  transition: width 200ms ease-out;
+  flex-shrink: 0;
+  position: relative;
+  pointer-events: none;
+  z-index: 150;
+}
+
+.clip {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.inner {
+  width: 240px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 8px 8px;
+  gap: 0;
+  background: var(--bg-app);
+  pointer-events: auto;
+}
+
+/* Top action rows: New Note + New Folder stacked */
+.topActions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.newNote {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  height: 32px;
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--text-nav);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.newNote:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.newFolder {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  height: 32px;
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--text-nav);
+  font-weight: var(--weight-medium);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.newFolder:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+/* Search row */
+.searchRow {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  gap: 8px;
+  transition: background var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.searchRow:focus-within {
+  background: var(--bg-elevated);
+}
+
+.searchIcon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+  font-size: var(--text-nav);
+  outline: none;
+  padding: 0;
+  min-width: 0;
+}
+
+.searchInput:focus {
+  color: var(--text-primary);
+}
+
+.searchInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+.searchClear {
+  flex-shrink: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.searchClear:hover {
+  color: var(--text-primary);
+}
+
+/* Section label before tree */
+.sectionLabel {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  padding: 4px 12px 8px;
+  font-weight: 500;
+  margin-top: 16px;
+  flex-shrink: 0;
+}
+
+/* Scrollable tree area */
+.tree {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-bottom: var(--space-4);
+}
+
+/* ── TreeNode styles ── */
+
+.treeRow {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  color: var(--text-primary);
+  user-select: none;
+  position: relative;
+  gap: 4px;
+}
+
+.treeRow:hover {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.treeRowActive {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  font-weight: var(--weight-medium);
+}
+
+.treeRowDimmed {
+  opacity: 0.55;
+}
+
+.chevron {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  transition: transform var(--transition-fast);
+}
+
+.chevronOpen {
+  transform: rotate(90deg);
+}
+
+.nodeIcon {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  margin-right: 1px;
+}
+
+.treeRow:hover .nodeIcon,
+.treeRowActive .nodeIcon {
+  color: var(--text-secondary);
+}
+
+.nodeName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-nav);
+}
+
+.nodeNameFolder {
+  font-size: var(--text-nav);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+
+.treeRow:hover .nodeNameFolder {
+  color: var(--text-primary);
+}
+
+/* Three-dot button */
+.dotButton {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
+}
+
+.treeRow:hover .dotButton,
+.treeRowActive .dotButton {
+  opacity: 1;
+}
+
+.dotButton:hover {
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+}
+
+/* Children indentation wrapper */
+.children {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Rename input inside a row */
+.renameInput {
+  flex: 1;
+  height: 22px;
+  padding: 2px 6px;
+  border: 1px solid var(--border-focus);
+  border-radius: var(--radius-sm);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  outline: none;
+  box-shadow: var(--glow-accent);
+}
+
+/* Context menu */
+.contextMenu {
+  position: fixed;
+  z-index: 1000;
+  pointer-events: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  min-width: 160px;
+  box-shadow: var(--shadow-popover);
+}
+
+.contextItem {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: var(--text-nav);
+  text-align: left;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.contextItem:hover {
+  background: var(--bg-overlay);
+}
+
+.contextDanger {
+  color: var(--danger);
+}
+
+.contextDanger:hover {
+  background: rgba(255, 69, 58, 0.1);
+}
+
+.menuDivider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 4px 0;
+}
+
+/* Sidebar footer — MCP dot */
+.footer {
+  padding: 8px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+}
+
+.mcpDotBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.mcpDotBtn:hover {
+  background: var(--bg-elevated);
+}
+
+.mcpDot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mcpDotOn {
+  background: #34c759;
+  box-shadow: 0 0 6px rgba(52, 199, 89, 0.7);
+}
+
+.mcpDotOff {
+  background: var(--text-tertiary);
+}
+
+/* Drag & drop states */
+.treeRowDragging {
+  opacity: 0.4;
+}
+
+.treeRowDragOver {
+  background: var(--bg-overlay) !important;
+  outline: 1px solid var(--accent, #6e6efc);
+  outline-offset: -1px;
+  border-radius: var(--radius-md);
+}
+
+.treeRowInsertBefore {
+  position: relative;
+}
+
+.treeRowInsertBefore::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--accent, #6e6efc);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.treeRowInsertAfter {
+  position: relative;
+}
+
+.treeRowInsertAfter::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  background: var(--accent, #6e6efc);
+  border-radius: 1px;
+  pointer-events: none;
+}
