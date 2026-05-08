@@ -136,6 +136,10 @@ Start-Sleep 2
 
 7. **PowerShell here-string `@'...'@` cannot be passed via `-Command`.** Always use `-File` with a `.ps1` file for multi-line scripts.
 
+8. **NSIS must use `oneClick: true` for auto-updates.** `oneClick: false` shows the full installer wizard on every auto-update — annoying UX. With `oneClick: true`, "Restart now" → app closes → installer runs silently → new version starts. This is what every Electron app with auto-update does. **Do NOT switch back to `oneClick: false`** unless you're abandoning auto-updates. Path selection is sacrificed but always installs to `%LocalAppData%\Programs\Monomark` which is correct.
+
+9. **GitHub publish timing race.** `release.ps1` finishes the moment `gh release create` returns, but the running Monomark may have done its update check seconds before the release became visible. Always wait ~30s after release.ps1 completes before restarting Monomark to test the auto-update.
+
 ## Manual release recipe (if release.ps1 is missing)
 
 ```powershell

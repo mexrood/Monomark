@@ -58,10 +58,15 @@ win:
       role: Editor
 
 nsis:
-  oneClick: false
+  # oneClick: true — silent install/update flow (no wizard for first install,
+  # no wizard for auto-updates). User clicks "Restart now" in the in-app
+  # update dialog → app closes → installer runs silently → new version starts.
+  # This is the standard pattern for Electron apps with auto-update (Discord,
+  # Slack, VS Code Insiders, etc.). Path selection is intentionally omitted —
+  # always installs to %LocalAppData%\Programs\Monomark.
+  oneClick: true
   perMachine: false
   allowElevation: false
-  allowToChangeInstallationDirectory: true
   deleteAppDataOnUninstall: false
   createDesktopShortcut: true
   createStartMenuShortcut: true

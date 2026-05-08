@@ -32,8 +32,18 @@ Write-Host "Version: $old -> $new" -ForegroundColor Cyan
 # Build (don't redirect stderr — npm warnings to stderr would bork the script)
 Write-Host "`nBuilding..." -ForegroundColor Cyan
 & npm run build:x64
-if (-not (Test-Path "release\Monomark-Setup-$new-x64.exe")) {
-    Write-Host "Build failed - release\Monomark-Setup-$new-x64.exe not found" -ForegroundColor Red
+# Note: don't trust npm/electron-builder exit codes blindly — they sometimes
+# return non-zero on success (PowerShell's NativeCommandError quirk with stderr).
+# Verify by polling for the artifact file with a small grace window for any
+# residual file-system caching after electron-builder writes it.
+$expected = "release\Monomark-Setup-$new-x64.exe"
+$tries = 0
+while (-not (Test-Path $expected) -and $tries -lt 8) {
+    Start-Sleep -Seconds 1
+    $tries++
+}
+if (-not (Test-Path $expected)) {
+    Write-Host "Build failed - $expected not found after 8s" -ForegroundColor Red
     exit 1
 }
 
