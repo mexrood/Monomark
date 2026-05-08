@@ -8,7 +8,12 @@
   width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  padding: 32px 48px;
+  /* top padding clears the 70px navBlur zone (44px topbar + 32px breathing
+     room = 76px below the blur fade-out) so the static heading isn't
+     touched by the blur. In document mode this isn't needed because the
+     editor content scrolls under the blur — that's the visual signature.
+     In Settings the heading is static, so it must sit below the blur. */
+  padding: 80px 48px 32px;
 }
 
 .title {
