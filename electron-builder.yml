@@ -130,3 +130,7 @@ publish:
     owner: mexrood
     repo: Monomark
     releaseType: release
+    # private: true tells electron-updater to use the GitHub REST API with the
+    # GH_TOKEN env var (instead of the public releases.atom RSS feed which
+    # returns 404 for private repos and ignores auth headers).
+    private: true
