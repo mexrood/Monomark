@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { scrollRegistry } from '../../../utils/scrollRegistry'
 import { useEditor, EditorContent } from '@tiptap/react'
 import { useVaultStore } from '../../../store/useVaultStore'
@@ -8,6 +8,7 @@ import { splitFrontmatter, joinFrontmatter } from '../../../utils/frontmatter'
 import { buildExtensions } from './extensions'
 import { FrontmatterCard } from './FrontmatterCard'
 import { FormattingBubbleMenu } from './FormattingBubbleMenu'
+import { DocumentOutline } from './DocumentOutline'
 import styles from './RichEditor.module.css'
 
 export const RichEditor: React.FC = () => {
@@ -17,9 +18,13 @@ export const RichEditor: React.FC = () => {
   useAutoSave()
 
   const scrollRef = useRef<HTMLDivElement>(null)
+  // Mirror the scroll element in state so child components (DocumentOutline)
+  // re-render once the ref is populated after mount.
+  const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null)
 
   useEffect(() => {
     scrollRegistry.set(scrollRef.current)
+    setScrollEl(scrollRef.current)
     return () => scrollRegistry.set(null)
   }, [])
 
@@ -136,12 +141,15 @@ export const RichEditor: React.FC = () => {
   }, [rawContent])
 
   return (
-    <div className={styles.editorWrap} ref={scrollRef}>
-      {frontmatterRef.current && (
-        <FrontmatterCard content={frontmatterRef.current} />
-      )}
-      <EditorContent editor={editor} className={styles.editorContent} />
-      <FormattingBubbleMenu editor={editor} />
-    </div>
+    <>
+      <div className={styles.editorWrap} ref={scrollRef}>
+        {frontmatterRef.current && (
+          <FrontmatterCard content={frontmatterRef.current} />
+        )}
+        <EditorContent editor={editor} className={styles.editorContent} />
+        <FormattingBubbleMenu editor={editor} />
+      </div>
+      <DocumentOutline editor={editor} scrollContainer={scrollEl} />
+    </>
   )
 }
