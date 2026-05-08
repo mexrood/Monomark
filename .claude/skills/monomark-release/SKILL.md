@@ -140,7 +140,21 @@ Start-Sleep 2
 
 9. **GitHub publish timing race.** `release.ps1` finishes the moment `gh release create` returns, but the running Monomark may have done its update check seconds before the release became visible. Always wait ~30s after release.ps1 completes before restarting Monomark to test the auto-update.
 
-10. **`gh release create` from PowerShell needs splatting, not backticks.** Calling `& gh release create "v$new" ` "asset1" ` ...` with backtick line-continuation occasionally exits with -536870873 and creates NO release (no error message either). Build the args as an array and splat with `@`: `& gh @ghArgs`. Already in `release.ps1`. If a release.ps1 invocation reports "Release failed", verify with `gh release view vX.Y.Z --repo mexrood/Monomark` first — the build artifacts are good, just retry the release step manually with the array form.
+10. **`gh release create` from the Claude PowerShell tool fails with -536870873 when uploading large assets (~96MB).** This appears to be specific to the agent's PowerShell environment — when the user runs `release.ps1` manually in their own terminal it works fine. Symptoms: build succeeds, commit + push succeeds, then "Release failed with exit code -536870873" with no real error and no release on GitHub. Splatting/backticks don't matter — it's the upload itself that fails in this env.
+
+    **Fallback recipe** when `release.ps1` reports a release failure:
+    1. Verify: `gh release view vX.Y.Z --repo mexrood/Monomark` — if "release not found", proceed to step 2
+    2. Run the same `gh release create` from the Bash tool instead:
+    ```bash
+    export PATH="/c/Users/Alex/AppData/Local/Programs/gh/bin:$PATH"
+    gh release create vX.Y.Z \
+      "release/Monomark-Setup-X.Y.Z-x64.exe" \
+      "release/Monomark-Setup-X.Y.Z-x64.exe.blockmap" \
+      "release/Monomark-X.Y.Z-win.zip" \
+      "release/latest.yml" \
+      --title "vX.Y.Z" --notes "..."
+    ```
+    Bash invocations of gh.exe upload reliably even from the agent environment.
 
 ## Manual release recipe (if release.ps1 is missing)
 
