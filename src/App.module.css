@@ -55,31 +55,31 @@
   height: 100%;
 }
 
+/*
+ * NB: do NOT add `-webkit-backdrop-filter` or `-webkit-mask-image` alongside the
+ * standard properties. esbuild's CSS minifier (vite production build with
+ * cssTarget:'chrome120') deduplicates them and keeps the wrong one — only the
+ * vendor-prefixed survives, which Electron's compositor ignores at runtime,
+ * killing the blur in production while it still works in dev. Standard
+ * backdrop-filter has been supported in Chromium since v76, prefix not needed.
+ */
 .blurLayer1 {
   backdrop-filter: blur(1px);
-  -webkit-backdrop-filter: blur(1px);
-  -webkit-mask-image: linear-gradient(to bottom, white 0%, white 62.5%, transparent 87.5%);
   mask-image: linear-gradient(to bottom, white 0%, white 62.5%, transparent 87.5%);
 }
 
 .blurLayer2 {
   backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
-  -webkit-mask-image: linear-gradient(to bottom, white 0%, white 50%, transparent 75%);
   mask-image: linear-gradient(to bottom, white 0%, white 50%, transparent 75%);
 }
 
 .blurLayer3 {
   backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  -webkit-mask-image: linear-gradient(to bottom, white 0%, white 37.5%, transparent 62.5%);
   mask-image: linear-gradient(to bottom, white 0%, white 37.5%, transparent 62.5%);
 }
 
 .blurLayer4 {
   backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  -webkit-mask-image: linear-gradient(to bottom, white 0%, white 25%, transparent 50%);
   mask-image: linear-gradient(to bottom, white 0%, white 25%, transparent 50%);
 }
 

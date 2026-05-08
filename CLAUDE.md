@@ -39,6 +39,7 @@ without it `gradientOverlay` collapses to zero height and the top fade vanishes.
 | Missing `position: absolute` on `gradientOverlay` | Div collapses to zero height — top fade invisible, looks broken |
 | GPU flags only (`CSSBackdropFilter`, `UseSkiaRenderer`, `enable-gpu-rasterization`) | Don't fix the root cause — `transparent: true` on the BrowserWindow switches compositor to per-pixel-alpha mode where `backdrop-filter` is silently disabled on Windows |
 | `transparent: true` on BrowserWindow | **Root cause of blur not working in production.** Do NOT restore this. |
+| `backdrop-filter` + `-webkit-backdrop-filter` together in CSS | **esbuild's CSS minifier (vite production with `cssTarget: 'chrome120'`) silently dedupes them and keeps the WRONG one** — only `-webkit-backdrop-filter` survives, Electron's compositor ignores the prefixed form, blur dies in packaged app while still working in dev. **Never add `-webkit-` prefix** alongside the standard property. Standard `backdrop-filter` works in Chromium since v76. Same applies to `-webkit-mask-image`. |
 
 ### Current approach (working)
 
