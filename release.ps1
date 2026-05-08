@@ -37,15 +37,20 @@ Write-Host "`nBuilding..." -ForegroundColor Cyan
 # Verify by polling for the artifact file with a small grace window for any
 # residual file-system caching after electron-builder writes it.
 $expected = "release\Monomark-Setup-$new-x64.exe"
+# electron-builder runs many serial steps after npm exits: NSIS compile,
+# 4× signtool calls (signs main exe, elevate.exe, uninstaller, installer),
+# block map generation. On this machine that takes ~15-25s after npm returns.
+# Poll for up to 90s before giving up.
 $tries = 0
-while (-not (Test-Path $expected) -and $tries -lt 8) {
+while (-not (Test-Path $expected) -and $tries -lt 90) {
     Start-Sleep -Seconds 1
     $tries++
 }
 if (-not (Test-Path $expected)) {
-    Write-Host "Build failed - $expected not found after 8s" -ForegroundColor Red
+    Write-Host "Build failed - $expected not found after 90s" -ForegroundColor Red
     exit 1
 }
+Write-Host "Build artifact ready after $tries`s wait." -ForegroundColor DarkGray
 
 # Commit + push
 Write-Host "`nCommit + push..." -ForegroundColor Cyan

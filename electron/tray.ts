@@ -1,13 +1,10 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage } from 'electron'
+import { app, BrowserWindow, Menu, Tray, nativeImage, MenuItemConstructorOptions } from 'electron'
 import { join } from 'path'
+import { onUpdateState, getUpdateState, checkForUpdates, installUpdateNow, UpdateState } from './updater'
 
 let tray: Tray | null = null
+let unsubscribeUpdater: (() => void) | null = null
 
-/**
- * Resolve the tray icon path.
- * In development: source is in build/ next to the project root.
- * In production: icon is copied to resources/ via extraResources in electron-builder.yml.
- */
 function makeTrayIcon() {
   const isDev = !app.isPackaged
   const iconFile = process.platform === 'win32' ? 'tray.ico' : 'tray.png'
@@ -19,12 +16,42 @@ function makeTrayIcon() {
   return img.isEmpty() ? nativeImage.createEmpty() : img
 }
 
+/** Build the tray's "update" menu item based on the current updater state. */
+function updateMenuItem(state: UpdateState): MenuItemConstructorOptions {
+  switch (state.status) {
+    case 'checking':
+      return { label: 'Checking for updates...', enabled: false }
+    case 'available':
+      return { label: `Downloading v${state.version}...`, enabled: false }
+    case 'downloading':
+      return { label: `Downloading v${state.version} (${state.percent}%)...`, enabled: false }
+    case 'downloaded':
+      return {
+        label: `Update to v${state.version} - Restart now`,
+        click: () => installUpdateNow(),
+      }
+    case 'error':
+      return {
+        label: 'Update check failed - Retry',
+        click: () => { void checkForUpdates() },
+      }
+    case 'up-to-date':
+    case 'idle':
+    default:
+      return {
+        label: 'Check for updates',
+        click: () => { void checkForUpdates() },
+      }
+  }
+}
+
 export function createTray(mainWindow: BrowserWindow): Tray {
   tray = new Tray(makeTrayIcon())
   tray.setToolTip('Monomark')
 
   const rebuildMenu = () => {
     const visible = mainWindow.isVisible()
+    const state = getUpdateState()
     const menu = Menu.buildFromTemplate([
       {
         label: visible ? 'Hide Monomark' : 'Open Monomark',
@@ -35,10 +62,11 @@ export function createTray(mainWindow: BrowserWindow): Tray {
             mainWindow.show()
             mainWindow.focus()
           }
-          // Rebuild so label flips
           rebuildMenu()
         },
       },
+      { type: 'separator' },
+      updateMenuItem(state),
       { type: 'separator' },
       {
         label: 'Quit Monomark',
@@ -64,14 +92,19 @@ export function createTray(mainWindow: BrowserWindow): Tray {
     rebuildMenu()
   })
 
-  // Rebuild menu when visibility changes so label stays accurate
+  // Rebuild menu when window visibility OR updater state changes
   mainWindow.on('show', rebuildMenu)
   mainWindow.on('hide', rebuildMenu)
+  unsubscribeUpdater = onUpdateState(rebuildMenu)
 
   return tray
 }
 
 export function destroyTray() {
+  if (unsubscribeUpdater) {
+    unsubscribeUpdater()
+    unsubscribeUpdater = null
+  }
   if (tray) {
     tray.destroy()
     tray = null

@@ -87,6 +87,23 @@ interface MarrowPreviewAPI {
   offLoad(): void
 }
 
+export type UpdateState =
+  | { status: 'idle' }
+  | { status: 'checking' }
+  | { status: 'up-to-date'; version: string }
+  | { status: 'available'; version: string }
+  | { status: 'downloading'; version: string; percent: number }
+  | { status: 'downloaded'; version: string }
+  | { status: 'error'; message: string }
+
+interface MarrowUpdaterAPI {
+  check(): Promise<UpdateState>
+  install(): Promise<void>
+  getState(): Promise<UpdateState>
+  onStateChange(cb: (state: UpdateState) => void): void
+  offStateChange(): void
+}
+
 interface MarrowAPI {
   window: MarrowWindowAPI
   app: MarrowAppAPI
@@ -97,6 +114,7 @@ interface MarrowAPI {
   util?: MarrowUtilAPI
   mcp?: MarrowMcpAPI
   preview?: MarrowPreviewAPI
+  updater?: MarrowUpdaterAPI
 }
 
 declare global {

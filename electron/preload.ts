@@ -60,6 +60,14 @@ contextBridge.exposeInMainWorld('marrow', {
       ipcRenderer.on('preview:load', (_event, data) => cb(data)),
     offLoad: () => ipcRenderer.removeAllListeners('preview:load'),
   },
+  updater: {
+    check: () => ipcRenderer.invoke('updater:check'),
+    install: () => ipcRenderer.invoke('updater:install'),
+    getState: () => ipcRenderer.invoke('updater:getState'),
+    onStateChange: (cb: (state: unknown) => void) =>
+      ipcRenderer.on('updater:state', (_event, state) => cb(state)),
+    offStateChange: () => ipcRenderer.removeAllListeners('updater:state'),
+  },
   vault: {
     pickVaultFolder: () => ipcRenderer.invoke('vault:pickVaultFolder'),
     getVaultPath: () => ipcRenderer.invoke('vault:getVaultPath'),
