@@ -66,7 +66,7 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: Monomark
-  artifactName: "${productName} Setup ${version} ${arch}.exe"
+  artifactName: "${productName}-Setup-${version}-${arch}.exe"
   include: scripts/installer.nsh
 
 # ── macOS ─────────────────────────────────────────────────────────────────────
