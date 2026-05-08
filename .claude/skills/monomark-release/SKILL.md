@@ -140,6 +140,8 @@ Start-Sleep 2
 
 9. **GitHub publish timing race.** `release.ps1` finishes the moment `gh release create` returns, but the running Monomark may have done its update check seconds before the release became visible. Always wait ~30s after release.ps1 completes before restarting Monomark to test the auto-update.
 
+10. **`gh release create` from PowerShell needs splatting, not backticks.** Calling `& gh release create "v$new" ` "asset1" ` ...` with backtick line-continuation occasionally exits with -536870873 and creates NO release (no error message either). Build the args as an array and splat with `@`: `& gh @ghArgs`. Already in `release.ps1`. If a release.ps1 invocation reports "Release failed", verify with `gh release view vX.Y.Z --repo mexrood/Monomark` first — the build artifacts are good, just retry the release step manually with the array form.
+
 ## Manual release recipe (if release.ps1 is missing)
 
 ```powershell

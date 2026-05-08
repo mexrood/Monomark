@@ -59,18 +59,27 @@ Write-Host "`nCommit + push..." -ForegroundColor Cyan
 & git push origin main
 
 # Release on GitHub
+# Build the args as an array and splat — backtick line-continuation occasionally
+# mangles long arg lists for gh.exe under PowerShell, returning exit -536870873
+# without creating the release. Splatting is reliable.
 Write-Host "`nCreating GitHub release v$new..." -ForegroundColor Cyan
 if (-not $Notes) { $Notes = "v$new" }
-& gh release create "v$new" `
-  "release\Monomark-Setup-$new-x64.exe" `
-  "release\Monomark-Setup-$new-x64.exe.blockmap" `
-  "release\Monomark-$new-win.zip" `
-  "release\latest.yml" `
-  --title "v$new" --notes $Notes
+
+$ghArgs = @(
+  'release', 'create', "v$new",
+  "release\Monomark-Setup-$new-x64.exe",
+  "release\Monomark-Setup-$new-x64.exe.blockmap",
+  "release\Monomark-$new-win.zip",
+  "release\latest.yml",
+  '--title', "v$new",
+  '--notes', $Notes
+)
+& gh @ghArgs
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`nDone! Installed Monomark will detect v$new within ~60s of next start." -ForegroundColor Green
 } else {
     Write-Host "`nRelease failed with exit code $LASTEXITCODE" -ForegroundColor Red
+    Write-Host "Verify on GitHub: gh release view v$new --repo mexrood/Monomark" -ForegroundColor Yellow
     exit $LASTEXITCODE
 }
