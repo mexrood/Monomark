@@ -1,6 +1,6 @@
 {
   "name": "monomark",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A focused markdown knowledge-base for thinking alongside Claude Code",
   "author": {
     "name": "Monomark",
@@ -59,6 +59,7 @@
     "@tiptap/suggestion": "^3.22.5",
     "auto-launch": "^5.0.6",
     "chokidar": "^5.0.0",
+    "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "electron-updater": "^6.8.3",
     "electron-window-state": "^5.0.3",
