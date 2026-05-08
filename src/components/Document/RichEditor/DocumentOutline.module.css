@@ -11,11 +11,20 @@
   z-index: 50;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 12px 12px 12px 16px;
+  gap: 12px;
+  padding: 14px 14px 14px 18px;
   pointer-events: auto;
-  /* Subtle widening on hover so labels don't pop visually */
-  transition: padding 0.18s ease-out;
+  background: transparent;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  transition: background 0.18s ease-out, border-color 0.18s ease-out, backdrop-filter 0.18s ease-out;
+}
+
+.outline:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-subtle);
+  backdrop-filter: blur(20px) saturate(1.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
 .item {
@@ -92,8 +101,4 @@
   color: var(--text-primary);
 }
 
-.item.active .label {
-  opacity: 1;
-  color: var(--text-primary);
-  font-weight: 500;
-}
+/* Active heading: only the line is highlighted; label stays hidden until hover */
