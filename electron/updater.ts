@@ -68,8 +68,12 @@ export function installUpdateNow(): void {
     log.warn('[updater] installUpdateNow called but state is', currentState.status)
     return
   }
-  log.info('[updater] User triggered install — calling quitAndInstall')
-  autoUpdater.quitAndInstall()
+  log.info('[updater] User triggered install — calling quitAndInstall(false, true)')
+  // quitAndInstall(isSilent, isForceRunAfter)
+  //   isSilent: false → user briefly sees the NSIS "installing..." progress dialog
+  //   isForceRunAfter: true → installer auto-launches Monomark after the upgrade.
+  // Without isForceRunAfter the user is left with no app running after the install.
+  autoUpdater.quitAndInstall(false, true)
 }
 
 export function initAutoUpdater(mainWindow: BrowserWindow) {
