@@ -11,6 +11,20 @@ import { FormattingBubbleMenu } from './FormattingBubbleMenu'
 import { DocumentOutline } from './DocumentOutline'
 import styles from './RichEditor.module.css'
 
+// Error boundary so a crash in DocumentOutline (e.g. stale ProseMirror positions
+// during a doc switch) can never take down the entire editor view.
+class OutlineBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  componentDidUpdate(prev: { children: React.ReactNode }) {
+    // Reset on next render so a temporary error during a doc switch doesn't permanently hide the outline
+    if (this.state.hasError && prev.children !== this.props.children) {
+      this.setState({ hasError: false })
+    }
+  }
+  render() { return this.state.hasError ? null : this.props.children }
+}
+
 export const RichEditor: React.FC = () => {
   const document   = useVaultStore(s => s.document)
   const updateContent = useVaultStore(s => s.updateContent)
@@ -162,7 +176,9 @@ export const RichEditor: React.FC = () => {
         <EditorContent editor={editor} className={styles.editorContent} />
         <FormattingBubbleMenu editor={editor} />
       </div>
-      <DocumentOutline editor={editor} scrollContainer={scrollEl} />
+      <OutlineBoundary>
+        <DocumentOutline editor={editor} scrollContainer={scrollEl} />
+      </OutlineBoundary>
     </>
   )
 }
