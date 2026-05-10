@@ -176,9 +176,12 @@ export const RichEditor: React.FC = () => {
         <EditorContent editor={editor} className={styles.editorContent} />
         <FormattingBubbleMenu editor={editor} />
       </div>
-      <OutlineBoundary>
-        <DocumentOutline editor={editor} scrollContainer={scrollEl} />
-      </OutlineBoundary>
+      {/* DocumentOutline temporarily disabled — investigating black-screen render glitch */}
+      {false && (
+        <OutlineBoundary>
+          <DocumentOutline editor={editor} scrollContainer={scrollEl} />
+        </OutlineBoundary>
+      )}
     </>
   )
 }
