@@ -28,6 +28,19 @@ export const RichEditor: React.FC = () => {
     return () => scrollRegistry.set(null)
   }, [])
 
+  // When the open document changes, re-ping scrollRegistry so the ScrollBar
+  // recomputes thumb size/position. The container element doesn't change but
+  // its scrollHeight does — ResizeObserver on the container alone misses that.
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTop = 0
+        scrollRegistry.set(scrollRef.current)
+      }
+    })
+    return () => cancelAnimationFrame(id)
+  }, [fileKey])
+
   // Keep the front-matter block in a ref so TipTap never sees it
   const frontmatterRef = useRef('')
 
