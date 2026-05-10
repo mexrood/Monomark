@@ -11,20 +11,6 @@ import { FormattingBubbleMenu } from './FormattingBubbleMenu'
 import { DocumentOutline } from './DocumentOutline'
 import styles from './RichEditor.module.css'
 
-// Error boundary so a crash in DocumentOutline (e.g. stale ProseMirror positions
-// during a doc switch) can never take down the entire editor view.
-class OutlineBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean }> {
-  state = { hasError: false }
-  static getDerivedStateFromError() { return { hasError: true } }
-  componentDidUpdate(prev: { children: React.ReactNode }) {
-    // Reset on next render so a temporary error during a doc switch doesn't permanently hide the outline
-    if (this.state.hasError && prev.children !== this.props.children) {
-      this.setState({ hasError: false })
-    }
-  }
-  render() { return this.state.hasError ? null : this.props.children }
-}
-
 export const RichEditor: React.FC = () => {
   const document   = useVaultStore(s => s.document)
   const updateContent = useVaultStore(s => s.updateContent)
@@ -41,10 +27,6 @@ export const RichEditor: React.FC = () => {
     setScrollEl(scrollRef.current)
     return () => scrollRegistry.set(null)
   }, [])
-
-  // (v1.0.15 scrollbar-on-doc-switch ping reverted — was triggering a render
-  // race that produced a fullscreen black overlay. Will be reattempted via a
-  // safer mechanism that doesn't tear down the ScrollBar's listeners.)
 
   // Keep the front-matter block in a ref so TipTap never sees it
   const frontmatterRef = useRef('')
@@ -167,12 +149,7 @@ export const RichEditor: React.FC = () => {
         <EditorContent editor={editor} className={styles.editorContent} />
         <FormattingBubbleMenu editor={editor} />
       </div>
-      {/* DocumentOutline temporarily disabled — investigating black-screen render glitch */}
-      {false && (
-        <OutlineBoundary>
-          <DocumentOutline editor={editor} scrollContainer={scrollEl} />
-        </OutlineBoundary>
-      )}
+      <DocumentOutline editor={editor} scrollContainer={scrollEl} />
     </>
   )
 }
