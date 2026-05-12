@@ -40,7 +40,7 @@ function wrapHandler(
 
 export const tools: ToolDef[] = [
   {
-    name: 'vault.list',
+    name: 'vault_list',
     description:
       'List files and folders in the user\'s Monomark vault. Returns a tree of markdown files organized by project. Use this to discover what projects and documents exist before reading or writing.',
     inputSchema: {
@@ -56,12 +56,12 @@ export const tools: ToolDef[] = [
         },
       },
     },
-    handler: wrapHandler('vault.list', (args) =>
+    handler: wrapHandler('vault_list', (args) =>
       toolList(args as { path?: string; recursive?: boolean })
     ),
   },
   {
-    name: 'vault.read',
+    name: 'vault_read',
     description:
       'Read the full text content of a markdown file from the user\'s vault. Use this to access notes, documentation, problem logs, or any other content the user has stored.',
     inputSchema: {
@@ -74,12 +74,12 @@ export const tools: ToolDef[] = [
         },
       },
     },
-    handler: wrapHandler('vault.read', (args) =>
+    handler: wrapHandler('vault_read', (args) =>
       toolRead(args as { path: string })
     ),
   },
   {
-    name: 'vault.write',
+    name: 'vault_write',
     description:
       'Write content to a markdown file in the user\'s vault. By default, new files go to the inbox/ folder for the user to organize later. To save to a specific project, provide the full relative path. To overwrite an existing file, set overwrite: true — otherwise the call fails to prevent accidental data loss.',
     inputSchema: {
@@ -102,12 +102,12 @@ export const tools: ToolDef[] = [
         },
       },
     },
-    handler: wrapHandler('vault.write', (args) =>
+    handler: wrapHandler('vault_write', (args) =>
       toolWrite(args as { path: string; content: string; overwrite?: boolean })
     ),
   },
   {
-    name: 'vault.search',
+    name: 'vault_search',
     description:
       'Search for text across all markdown files in the user\'s vault. Returns matching files with snippets. Use this to find existing notes on a topic before writing new ones.',
     inputSchema: {
@@ -124,12 +124,12 @@ export const tools: ToolDef[] = [
         },
       },
     },
-    handler: wrapHandler('vault.search', (args) =>
+    handler: wrapHandler('vault_search', (args) =>
       toolSearch(args as { query: string; limit?: number })
     ),
   },
   {
-    name: 'vault.create_folder',
+    name: 'vault_create_folder',
     description:
       'Create a new folder inside the user\'s vault, useful when starting a new project. Optionally seed it with a CLAUDE.md context file and README.md.',
     inputSchema: {
@@ -147,7 +147,7 @@ export const tools: ToolDef[] = [
         },
       },
     },
-    handler: wrapHandler('vault.create_folder', (args) =>
+    handler: wrapHandler('vault_create_folder', (args) =>
       toolCreateFolder(args as { path: string; initialize_project?: boolean })
     ),
   },
