@@ -141,8 +141,10 @@ const MainApp: React.FC = () => {
   // Drop on <main> fires when overlay hasn't rendered yet or user drops quickly
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    const file = e.dataTransfer.files[0] as (File & { path?: string }) | undefined
-    if (file?.path) openDroppedFile(file.path)
+    const file = e.dataTransfer.files[0]
+    if (!file) { setExternalDrop(false); return }
+    const filePath = window.marrow?.util?.getPathForFile(file)
+    if (filePath) openDroppedFile(filePath)
     else setExternalDrop(false)
   }, [openDroppedFile])
 

@@ -22,9 +22,10 @@ export const DropOverlay: React.FC<DropOverlayProps> = ({ onDrop, onCancel }) =>
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
-    const files = Array.from(e.dataTransfer.files)
-    const file = files[0] as File & { path: string }
-    if (file?.path) onDrop(file.path)
+    const file = e.dataTransfer.files[0]
+    if (!file) { onCancel(); return }
+    const filePath = window.marrow?.util?.getPathForFile(file)
+    if (filePath) onDrop(filePath)
     else onCancel()
   }, [onDrop, onCancel])
 

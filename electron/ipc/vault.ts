@@ -85,6 +85,20 @@ export function registerVaultIPC() {
     return result.filePaths[0]
   })
 
+  ipcMain.handle('vault:pickFile', async () => {
+    const result = await dialog.showOpenDialog({
+      title: 'Open File',
+      properties: ['openFile'],
+      filters: [
+        { name: 'Markdown', extensions: ['md', 'markdown'] },
+        { name: 'Text', extensions: ['txt'] },
+        { name: 'All Files', extensions: ['*'] },
+      ],
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    return result.filePaths[0]
+  })
+
   ipcMain.handle('vault:getVaultPath', () => {
     return store.get('vaultPath') || null
   })

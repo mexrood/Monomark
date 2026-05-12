@@ -18,6 +18,7 @@ interface MarrowAppAPI {
 
 interface MarrowVaultAPI {
   pickVaultFolder(): Promise<string | null>
+  pickFile(): Promise<string | null>
   getVaultPath(): Promise<string | null>
   setVaultPath(path: string): Promise<void>
   listTree(): Promise<VaultNode[]>
@@ -56,6 +57,7 @@ interface MarrowUtilAPI {
   showInFolder(path: string): Promise<void>
   copyToClipboard(text: string): Promise<void>
   showMessageBox(opts: unknown): Promise<number>
+  getPathForFile(file: File): string
 }
 
 interface MarrowMcpAPI {
@@ -85,6 +87,7 @@ interface MarrowPreviewAPI {
   close(): Promise<void>
   onLoad(cb: (data: { filePath: string; content: string }) => void): void
   offLoad(): void
+  openInMain(filePath: string): Promise<void>
 }
 
 export type UpdateState =

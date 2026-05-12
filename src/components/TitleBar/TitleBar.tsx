@@ -126,7 +126,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSettings }) => {
   }, [vaultPath, docState, refreshTree])
 
   const handleOpenFile = useCallback(async () => {
-    const path = await window.marrow.vault.pickVaultFolder()
+    const path = await window.marrow.vault.pickFile()
     if (path) await openDocument(path)
   }, [openDocument])
 

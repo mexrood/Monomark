@@ -66,8 +66,8 @@ export const PreviewApp: React.FC = () => {
 
       await window.marrow.vault.writeFile(finalPath, data.content)
       setSaved(true)
-      // Close after a short delay so user sees the confirmation
-      setTimeout(() => window.marrow.window.close(), 800)
+      // Show the file in the main window, then close this preview window
+      setTimeout(() => window.marrow.preview?.openInMain(finalPath), 800)
     } catch (e) {
       console.error('[preview] save failed', e)
     } finally {
