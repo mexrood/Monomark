@@ -263,6 +263,18 @@ ipcMain.handle('preview:close', (_event) => {
   }
 })
 
+ipcMain.handle('preview:openInMain', (_event, filePath: string) => {
+  if (previewWindow && !previewWindow.isDestroyed()) {
+    previewWindow.destroy()
+    previewWindow = null
+  }
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.show()
+    mainWindow.focus()
+    mainWindow.webContents.send('file:open', filePath)
+  }
+})
+
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {

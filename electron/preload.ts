@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
 contextBridge.exposeInMainWorld('marrow', {
   window: {
@@ -35,6 +35,7 @@ contextBridge.exposeInMainWorld('marrow', {
     showInFolder: (p: string) => ipcRenderer.invoke('util:showInFolder', p),
     copyToClipboard: (text: string) => ipcRenderer.invoke('util:copyToClipboard', text),
     showMessageBox: (opts: unknown) => ipcRenderer.invoke('util:showMessageBox', opts),
+    getPathForFile: (file: File) => webUtils.getPathForFile(file),
   },
   mcp: {
     getStatus: () => ipcRenderer.invoke('mcp:getStatus'),
@@ -59,6 +60,7 @@ contextBridge.exposeInMainWorld('marrow', {
     onLoad: (cb: (data: { filePath: string; content: string }) => void) =>
       ipcRenderer.on('preview:load', (_event, data) => cb(data)),
     offLoad: () => ipcRenderer.removeAllListeners('preview:load'),
+    openInMain: (filePath: string) => ipcRenderer.invoke('preview:openInMain', filePath),
   },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
@@ -70,6 +72,7 @@ contextBridge.exposeInMainWorld('marrow', {
   },
   vault: {
     pickVaultFolder: () => ipcRenderer.invoke('vault:pickVaultFolder'),
+    pickFile: () => ipcRenderer.invoke('vault:pickFile'),
     getVaultPath: () => ipcRenderer.invoke('vault:getVaultPath'),
     setVaultPath: (p: string) => ipcRenderer.invoke('vault:setVaultPath', p),
     listTree: () => ipcRenderer.invoke('vault:listTree'),
