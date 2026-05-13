@@ -1,23 +1,27 @@
 /* ── Outline panel ─────────────────────────────────────────────────────────────
- * Fixed to the right edge of the viewport. Shows tiny horizontal lines (one per
- * heading) by default; on hover, the labels slide in to the left of each line.
- * Clicking either line or label scrolls smoothly to that heading.
+ * Fixed to the right edge. Shows tiny lines by default; on hover the lines
+ * collapse and a scrollable text TOC slides in.
  */
 .outline {
   position: fixed;
-  right: 16px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   z-index: 50;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 14px 14px 14px 18px;
+  align-items: flex-end;
+  gap: 5px;
+  padding: 8px 6px;
   pointer-events: auto;
   background: transparent;
   border-radius: 10px;
   border: 1px solid transparent;
-  transition: background 0.18s ease-out, border-color 0.18s ease-out, backdrop-filter 0.18s ease-out;
+  max-height: 70vh;
+  overflow: hidden;
+  transition: background 0.22s ease-out, border-color 0.22s ease-out,
+              padding 0.22s ease-out, gap 0.22s ease-out,
+              box-shadow 0.22s ease-out;
 }
 
 .outline:hover {
@@ -25,28 +29,47 @@
   border-color: var(--border-subtle);
   backdrop-filter: blur(20px) saturate(1.2);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  padding: 10px 14px;
+  gap: 1px;
+  overflow-y: auto;
 }
 
+.outline::-webkit-scrollbar {
+  width: 3px;
+}
+.outline::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 3px;
+}
+.outline::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ── Item (button wrapping label + line) ───────────────────────────────────── */
 .item {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 0;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 0;
+  padding: 2px 0;
   margin: 0;
   font-family: var(--font-ui);
   font-size: 12px;
   color: var(--text-secondary);
-  height: 14px;
-  width: 100%;
-  /* Allow item to extend leftward when label appears so hit-area stays predictable */
+  white-space: nowrap;
   text-align: right;
+  flex-shrink: 0;
+  transition: color 0.15s ease-out;
 }
 
-/* ── The horizontal "line" — always visible ──────────────────────────────────── */
+.outline:hover .item {
+  padding: 3px 0;
+}
+
+/* ── The horizontal "line" — always visible, 25% shorter ───────────────────── */
 .line {
   display: block;
   height: 1px;
@@ -54,17 +77,14 @@
   opacity: 0.45;
   border-radius: 1px;
   flex-shrink: 0;
-  transition:
-    width 0.15s ease-out,
-    height 0.15s ease-out,
-    opacity 0.15s ease-out,
-    background 0.15s ease-out;
+  transition: width 0.18s ease-out, height 0.15s ease-out,
+              opacity 0.18s ease-out, background 0.15s ease-out;
 }
 
-.level1 .line { width: 22px; }
-.level2 .line { width: 18px; }
-.level3 .line { width: 14px; }
-.level4 .line { width: 10px; }
+.level1 .line { width: 17px; }
+.level2 .line { width: 14px; }
+.level3 .line { width: 11px; }
+.level4 .line { width: 8px; }
 
 .item:hover .line {
   opacity: 1;
@@ -77,28 +97,40 @@
   height: 2px;
 }
 
-/* ── Label — hidden until container is hovered ──────────────────────────────── */
+.outline:hover .line {
+  width: 0;
+  opacity: 0;
+}
+
+/* ── Label — hidden by default, slides in on container hover ───────────────── */
 .label {
-  white-space: nowrap;
-  max-width: 240px;
+  display: block;
+  max-width: 0;
   overflow: hidden;
+  opacity: 0;
   text-overflow: ellipsis;
   text-align: right;
-  opacity: 0;
-  transition: opacity 0.18s ease-out, color 0.15s ease-out;
+  transition: max-width 0.22s ease-out, opacity 0.2s ease-out, color 0.15s ease-out;
   pointer-events: none;
   user-select: none;
   letter-spacing: -0.005em;
 }
 
 .outline:hover .label {
+  max-width: 220px;
   opacity: 0.7;
   pointer-events: auto;
 }
 
+.outline:hover .level2 .label { opacity: 0.55; }
+.outline:hover .level3 .label { opacity: 0.45; font-size: 11px; }
+.outline:hover .level4 .label { opacity: 0.4; font-size: 11px; }
+
 .item:hover .label {
-  opacity: 1;
+  opacity: 1 !important;
   color: var(--text-primary);
 }
 
-/* Active heading: only the line is highlighted; label stays hidden until hover */
+.item.active .label {
+  opacity: 1 !important;
+}
