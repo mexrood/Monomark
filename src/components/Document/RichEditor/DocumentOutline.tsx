@@ -108,7 +108,7 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
     return () => scrollContainer.removeEventListener('scroll', onScroll)
   }, [editor, scrollContainer, headings])
 
-  if (!editor || headings.length < 2) return null
+  if (!editor || headings.length < 3) return null
 
   const scrollTo = (pos: number) => {
     if (!scrollContainer || !editor || editor.isDestroyed) return
@@ -139,27 +139,29 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
   }
 
   return (
-    <div className={styles.outline} aria-label="Document outline">
-      {headings.map(h => {
-        const lvl = Math.min(Math.max(h.level, 1), 4)
-        const cls = [
-          styles.item,
-          styles[`level${lvl}`],
-          h.pos === activePos ? styles.active : '',
-        ].filter(Boolean).join(' ')
-        return (
-          <button
-            key={h.pos}
-            className={cls}
-            onClick={() => scrollTo(h.pos)}
-            title={h.text}
-            type="button"
-          >
-            <span className={styles.label}>{h.text || '(untitled)'}</span>
-            <span className={styles.line} aria-hidden="true" />
-          </button>
-        )
-      })}
-    </div>
+    <aside className={styles.outline} aria-label="Document outline">
+      <div className={styles.label}>On this page</div>
+      <div className={styles.items}>
+        {headings.map(h => {
+          const lvl = Math.min(Math.max(h.level, 1), 4)
+          const cls = [
+            styles.item,
+            styles[`level${lvl}`],
+            h.pos === activePos ? styles.active : '',
+          ].filter(Boolean).join(' ')
+          return (
+            <button
+              key={h.pos}
+              className={cls}
+              onClick={() => scrollTo(h.pos)}
+              title={h.text}
+              type="button"
+            >
+              {h.text || '(untitled)'}
+            </button>
+          )
+        })}
+      </div>
+    </aside>
   )
 }

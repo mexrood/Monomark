@@ -141,15 +141,15 @@ export const RichEditor: React.FC = () => {
   }, [rawContent])
 
   return (
-    <>
-      <div className={styles.editorWrap} ref={scrollRef}>
-        {frontmatterRef.current && (
-          <FrontmatterCard content={frontmatterRef.current} />
-        )}
+    <div className={styles.editorWrap} ref={scrollRef}>
+      {frontmatterRef.current && (
+        <FrontmatterCard content={frontmatterRef.current} />
+      )}
+      <div className={styles.editorRow}>
+        <DocumentOutline editor={editor} scrollContainer={scrollEl} />
         <EditorContent editor={editor} className={styles.editorContent} />
-        <FormattingBubbleMenu editor={editor} />
       </div>
-      <DocumentOutline editor={editor} scrollContainer={scrollEl} />
-    </>
+      <FormattingBubbleMenu editor={editor} />
+    </div>
   )
 }

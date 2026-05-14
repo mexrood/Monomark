@@ -1,136 +1,80 @@
-/* ── Outline panel ─────────────────────────────────────────────────────────────
- * Fixed to the right edge. Shows tiny lines by default; on hover the lines
- * collapse and a scrollable text TOC slides in.
+/* ── Outline (Table of Contents) ──────────────────────────────────────────────
+ * Renders to the LEFT of the document. Sticky-positioned inside the editor's
+ * scroll container so it follows the user while they scroll.
  */
 .outline {
-  position: fixed;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 50;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 5px;
-  padding: 8px 6px;
-  pointer-events: auto;
-  background: transparent;
-  border-radius: 10px;
-  border: 1px solid transparent;
-  max-height: 70vh;
-  overflow: hidden;
-  transition: background 0.22s ease-out, border-color 0.22s ease-out,
-              padding 0.22s ease-out, gap 0.22s ease-out,
-              box-shadow 0.22s ease-out;
-}
-
-.outline:hover {
-  background: var(--bg-surface);
-  border-color: var(--border-subtle);
-  backdrop-filter: blur(20px) saturate(1.2);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
-  padding: 10px 14px;
-  gap: 1px;
+  position: sticky;
+  top: 80px;
+  align-self: flex-start;
+  flex-shrink: 0;
+  width: 220px;
+  margin-left: 24px;
+  margin-top: 48px; /* aligns with ProseMirror's 48px top padding */
+  max-height: calc(100vh - 120px);
   overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 0 8px;
 }
 
 .outline::-webkit-scrollbar {
-  width: 3px;
+  width: 4px;
 }
 .outline::-webkit-scrollbar-thumb {
-  background: var(--text-tertiary);
-  border-radius: 3px;
+  background: var(--border-default);
+  border-radius: 2px;
 }
 .outline::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* ── Item (button wrapping label + line) ───────────────────────────────────── */
-.item {
+/* Section label — matches the sidebar VAULT label tokens */
+.label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  padding: 4px 12px 8px;
+}
+
+.items {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* Heading items — sized + colored like sidebar TreeNode rows */
+.item {
+  display: block;
+  width: 100%;
   background: transparent;
   border: none;
   cursor: pointer;
-  padding: 2px 0;
-  margin: 0;
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: var(--text-nav); /* 14px */
   color: var(--text-secondary);
+  text-align: left;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
   white-space: nowrap;
-  text-align: right;
-  flex-shrink: 0;
-  transition: color 0.15s ease-out;
-}
-
-.outline:hover .item {
-  padding: 3px 0;
-}
-
-/* ── The horizontal "line" — always visible, 25% shorter ───────────────────── */
-.line {
-  display: block;
-  height: 1px;
-  background: var(--text-tertiary);
-  opacity: 0.45;
-  border-radius: 1px;
-  flex-shrink: 0;
-  transition: width 0.18s ease-out, height 0.15s ease-out,
-              opacity 0.18s ease-out, background 0.15s ease-out;
-}
-
-.level1 .line { width: 17px; }
-.level2 .line { width: 14px; }
-.level3 .line { width: 11px; }
-.level4 .line { width: 8px; }
-
-.item:hover .line {
-  opacity: 1;
-  background: var(--text-primary);
-}
-
-.item.active .line {
-  opacity: 1;
-  background: var(--text-primary);
-  height: 2px;
-}
-
-.outline:hover .line {
-  width: 0;
-  opacity: 0;
-}
-
-/* ── Label — hidden by default, slides in on container hover ───────────────── */
-.label {
-  display: block;
-  max-width: 0;
   overflow: hidden;
-  opacity: 0;
   text-overflow: ellipsis;
-  text-align: right;
-  transition: max-width 0.22s ease-out, opacity 0.2s ease-out, color 0.15s ease-out;
-  pointer-events: none;
-  user-select: none;
-  letter-spacing: -0.005em;
+  line-height: 1.5;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
-.outline:hover .label {
-  max-width: 220px;
-  opacity: 0.7;
-  pointer-events: auto;
-}
-
-.outline:hover .level2 .label { opacity: 0.55; }
-.outline:hover .level3 .label { opacity: 0.45; font-size: 11px; }
-.outline:hover .level4 .label { opacity: 0.4; font-size: 11px; }
-
-.item:hover .label {
-  opacity: 1 !important;
+.item:hover {
+  background: var(--bg-elev-1);
   color: var(--text-primary);
 }
 
-.item.active .label {
-  opacity: 1 !important;
+.item.active {
+  color: var(--text-primary);
+  font-weight: 500;
 }
+
+/* Level indentation — h1 flush left, deeper levels nest in */
+.level1 { padding-left: 12px; }
+.level2 { padding-left: 24px; }
+.level3 { padding-left: 36px; }
+.level4 { padding-left: 48px; font-size: 13px; }
