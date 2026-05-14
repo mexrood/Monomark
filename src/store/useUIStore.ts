@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 type Theme = 'dark' | 'light'
 export type AppMode = 'document' | 'settings'
-export type SettingsTab = 'general' | 'launch' | 'mcp' | 'about'
+export type SettingsTab = 'general' | 'launch' | 'mcp'
 
 interface UIStore {
   sidebarOpen: boolean
