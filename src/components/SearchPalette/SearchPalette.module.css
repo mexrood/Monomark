@@ -1,4 +1,4 @@
-/* Backdrop */
+/* Backdrop — top-anchored so the palette doesn't bounce on result-count change */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -6,15 +6,16 @@
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 100px;
 }
 
 /* Palette panel */
 .palette {
-  width: 640px;
+  width: 600px;
   max-width: 92vw;
-  max-height: 60vh;
+  max-height: 480px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
@@ -64,6 +65,22 @@
 
 .input::placeholder {
   color: var(--text-tertiary);
+}
+
+/* Section label — matches sidebar VAULT label tokens */
+.sectionLabel {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  padding: 10px 18px 6px;
+}
+
+/* Match highlight in result titles */
+.match {
+  color: var(--text-primary);
+  font-weight: 600;
 }
 
 /* Results list */

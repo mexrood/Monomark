@@ -1,28 +1,61 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
-import { Search, FileText } from 'lucide-react'
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
+import { Search, FileText, Clock } from 'lucide-react'
 import styles from './SearchPalette.module.css'
 import { useUIStore } from '../../store/useUIStore'
 import { useSearchStore } from '../../store/useSearchStore'
-import { useVaultStore } from '../../store/useVaultStore'
+import { useVaultStore, flattenTree } from '../../store/useVaultStore'
+
+type PaletteItem = {
+  path: string
+  title: string
+  snippet?: string
+  /** When set, render this prefix range bold (for query match highlighting). */
+  highlight?: { start: number; end: number }
+}
+
+const RECENT_LIMIT = 15
 
 export const SearchPalette: React.FC = () => {
   const close = useUIStore(s => s.closeSearchPalette)
   const { query, results, setQuery } = useSearchStore()
   const vaultPath = useVaultStore(s => s.vaultPath)
+  const tree = useVaultStore(s => s.tree)
   const openDocument = useVaultStore(s => s.openDocument)
 
   const [selected, setSelected] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Focus input on open
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
 
-  // Reset selection when results change
+  const recent: PaletteItem[] = useMemo(() => {
+    const files = flattenTree(tree)
+    return [...files]
+      .sort((a, b) => b.mtime - a.mtime)
+      .slice(0, RECENT_LIMIT)
+      .map(f => ({
+        path: f.path,
+        title: stripMdExt(f.name),
+      }))
+  }, [tree])
+
+  const trimmedQuery = query.trim()
+  const showRecent = trimmedQuery === ''
+
+  const items: PaletteItem[] = useMemo(() => {
+    if (showRecent) return recent
+    return results.map(hit => ({
+      path: hit.path,
+      title: hit.title,
+      snippet: hit.snippet,
+      highlight: findMatch(hit.title, trimmedQuery),
+    }))
+  }, [showRecent, recent, results, trimmedQuery])
+
   useEffect(() => {
     setSelected(0)
-  }, [results])
+  }, [items])
 
   const handleOpen = useCallback((path: string) => {
     openDocument(path)
@@ -33,20 +66,20 @@ export const SearchPalette: React.FC = () => {
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setSelected(s => Math.min(s + 1, results.length - 1))
+      setSelected(s => Math.min(s + 1, items.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setSelected(s => Math.max(s - 1, 0))
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      const hit = results[selected]
+      const hit = items[selected]
       if (hit) handleOpen(hit.path)
     } else if (e.key === 'Escape') {
       e.preventDefault()
       setQuery('')
       close()
     }
-  }, [results, selected, handleOpen, setQuery, close])
+  }, [items, selected, handleOpen, setQuery, close])
 
   const relPath = (abs: string) => {
     if (!vaultPath) return abs
@@ -54,10 +87,11 @@ export const SearchPalette: React.FC = () => {
     return abs.replace(/\\/g, '/').replace(base, '')
   }
 
+  const sectionLabel = showRecent ? 'Recent' : 'Results'
+
   return (
     <div className={styles.backdrop} onClick={() => { setQuery(''); close() }}>
       <div className={styles.palette} onClick={e => e.stopPropagation()}>
-
         <div className={styles.inputRow}>
           <Search size={16} strokeWidth={1.5} className={styles.inputIcon} />
           <input
@@ -70,33 +104,63 @@ export const SearchPalette: React.FC = () => {
           />
         </div>
 
-        {results.length > 0 && (
+        {items.length > 0 && (
           <div className={styles.results}>
-            {results.map((hit, i) => (
-              <button
-                key={hit.path}
-                className={`${styles.result} ${i === selected ? styles.resultSelected : ''}`}
-                onClick={() => handleOpen(hit.path)}
-                onMouseEnter={() => setSelected(i)}
-              >
-                <FileText size={14} strokeWidth={1.5} className={styles.resultIcon} />
-                <div className={styles.resultMeta}>
-                  <span className={styles.resultTitle}>{hit.title}</span>
-                  <span className={styles.resultPath}>{relPath(hit.path)}</span>
-                  {hit.snippet && (
-                    <span className={styles.resultSnippet}>{hit.snippet}</span>
-                  )}
-                </div>
-              </button>
-            ))}
+            <div className={styles.sectionLabel}>{sectionLabel}</div>
+            {items.map((item, i) => {
+              const Icon = showRecent ? Clock : FileText
+              return (
+                <button
+                  key={item.path}
+                  className={`${styles.result} ${i === selected ? styles.resultSelected : ''}`}
+                  onClick={() => handleOpen(item.path)}
+                  onMouseEnter={() => setSelected(i)}
+                >
+                  <Icon size={14} strokeWidth={1.5} className={styles.resultIcon} />
+                  <div className={styles.resultMeta}>
+                    <span className={styles.resultTitle}>
+                      {renderHighlighted(item.title, item.highlight)}
+                    </span>
+                    <span className={styles.resultPath}>{relPath(item.path)}</span>
+                    {item.snippet && (
+                      <span className={styles.resultSnippet}>{item.snippet}</span>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
           </div>
         )}
 
-        {query && results.length === 0 && (
+        {!showRecent && items.length === 0 && (
           <div className={styles.empty}>No results for "{query}"</div>
         )}
-
+        {showRecent && items.length === 0 && (
+          <div className={styles.empty}>No notes yet — start typing to search the vault.</div>
+        )}
       </div>
     </div>
+  )
+}
+
+function stripMdExt(name: string): string {
+  return name.replace(/\.md$/i, '')
+}
+
+function findMatch(text: string, query: string): { start: number; end: number } | undefined {
+  if (!query) return undefined
+  const idx = text.toLowerCase().indexOf(query.toLowerCase())
+  if (idx < 0) return undefined
+  return { start: idx, end: idx + query.length }
+}
+
+function renderHighlighted(text: string, range: { start: number; end: number } | undefined): React.ReactNode {
+  if (!range) return text
+  return (
+    <>
+      {text.slice(0, range.start)}
+      <strong className={styles.match}>{text.slice(range.start, range.end)}</strong>
+      {text.slice(range.end)}
+    </>
   )
 }
