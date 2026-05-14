@@ -91,16 +91,18 @@ interface MarrowPreviewAPI {
 }
 
 export type UpdateState =
-  | { status: 'idle' }
+  | { status: 'idle'; lastChecked?: number }
   | { status: 'checking' }
-  | { status: 'up-to-date'; version: string }
-  | { status: 'available'; version: string }
-  | { status: 'downloading'; version: string; percent: number }
+  | { status: 'up-to-date'; version: string; lastChecked: number }
+  | { status: 'available'; version: string; releaseNotes: string; releaseDate: string }
+  | { status: 'downloading'; version: string; percent: number; transferred: number; total: number; bytesPerSecond: number }
   | { status: 'downloaded'; version: string }
+  | { status: 'installing' }
   | { status: 'error'; message: string }
 
 interface MarrowUpdaterAPI {
   check(): Promise<UpdateState>
+  download(): Promise<void>
   install(): Promise<void>
   getState(): Promise<UpdateState>
   onStateChange(cb: (state: UpdateState) => void): void

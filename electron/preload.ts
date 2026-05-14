@@ -64,6 +64,7 @@ contextBridge.exposeInMainWorld('marrow', {
   },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
+    download: () => ipcRenderer.invoke('updater:download'),
     install: () => ipcRenderer.invoke('updater:install'),
     getState: () => ipcRenderer.invoke('updater:getState'),
     onStateChange: (cb: (state: unknown) => void) =>

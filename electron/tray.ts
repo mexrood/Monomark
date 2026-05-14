@@ -1,6 +1,6 @@
-import { app, BrowserWindow, Menu, Tray, nativeImage, MenuItemConstructorOptions } from 'electron'
+import { app, BrowserWindow, Menu, Tray, Notification, nativeImage, MenuItemConstructorOptions } from 'electron'
 import { join } from 'path'
-import { onUpdateState, getUpdateState, checkForUpdates, installUpdateNow, UpdateState } from './updater'
+import { onUpdateState, getUpdateState, checkForUpdates, downloadUpdate, installUpdateNow, UpdateState } from './updater'
 
 let tray: Tray | null = null
 let unsubscribeUpdater: (() => void) | null = null
@@ -16,20 +16,35 @@ function makeTrayIcon() {
   return img.isEmpty() ? nativeImage.createEmpty() : img
 }
 
+function notifyUpToDate() {
+  if (!Notification.isSupported()) return
+  try {
+    new Notification({
+      title: 'Monomark',
+      body: "You're on the latest version.",
+    }).show()
+  } catch { /* ignore */ }
+}
+
 /** Build the tray's "update" menu item based on the current updater state. */
 function updateMenuItem(state: UpdateState): MenuItemConstructorOptions {
   switch (state.status) {
     case 'checking':
       return { label: 'Checking for updates...', enabled: false }
     case 'available':
-      return { label: `Downloading v${state.version}...`, enabled: false }
+      return {
+        label: `Download v${state.version}`,
+        click: () => { void downloadUpdate() },
+      }
     case 'downloading':
       return { label: `Downloading v${state.version} (${state.percent}%)...`, enabled: false }
     case 'downloaded':
       return {
-        label: `Update to v${state.version} - Restart now`,
+        label: `Install v${state.version} and restart`,
         click: () => installUpdateNow(),
       }
+    case 'installing':
+      return { label: 'Installing...', enabled: false }
     case 'error':
       return {
         label: 'Update check failed - Retry',
@@ -40,7 +55,17 @@ function updateMenuItem(state: UpdateState): MenuItemConstructorOptions {
     default:
       return {
         label: 'Check for updates',
-        click: () => { void checkForUpdates() },
+        click: () => {
+          const before = getUpdateState().status
+          void checkForUpdates().then(() => {
+            const after = getUpdateState()
+            // Manual tray check with no update found → surface OS notification
+            // (otherwise the tray menu just rebuilds silently).
+            if (after.status === 'up-to-date' && before !== 'up-to-date') {
+              notifyUpToDate()
+            }
+          })
+        },
       }
   }
 }

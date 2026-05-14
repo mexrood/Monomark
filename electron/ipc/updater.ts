@@ -1,9 +1,14 @@
 import { ipcMain } from 'electron'
-import { checkForUpdates, installUpdateNow, getUpdateState } from '../updater'
+import { checkForUpdates, downloadUpdate, installUpdateNow, getUpdateState } from '../updater'
 
 export function registerUpdaterIPC() {
   ipcMain.handle('updater:check', async () => {
     await checkForUpdates()
+    return getUpdateState()
+  })
+
+  ipcMain.handle('updater:download', async () => {
+    await downloadUpdate()
     return getUpdateState()
   })
 
