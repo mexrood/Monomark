@@ -1,4 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+@font-face {
+  font-family: 'Inter';
+  src: url('./assets/fonts/InterVariable.woff2') format('woff2-variations'),
+       url('./assets/fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 /* ============================================
    Reset
@@ -23,6 +32,12 @@ html, body {
   border-radius: 12px;
 }
 
+body {
+  font-family: var(--font-ui);
+  font-feature-settings: 'cv11', 'ss01', 'ss03';
+  font-variation-settings: 'opsz' 28;
+}
+
 #root {
   width: 100%;
   height: 100%;
@@ -34,6 +49,19 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
   border-radius: 16px;
   overflow: hidden;
+}
+
+/* Inter optical size: Display range for headings */
+h1, h2, h3, h4, h5, h6,
+.cm-md-h1, .cm-md-h2, .cm-md-h3,
+.cm-md-h4, .cm-md-h5, .cm-md-h6 {
+  font-variation-settings: 'opsz' 32;
+}
+
+/* Inter optical size: Text range for body / inline prose */
+.prose, .prose p, .prose li,
+.cm-content, .cm-md-p, .cm-md-li {
+  font-variation-settings: 'opsz' 14;
 }
 
 /* ============================================
@@ -67,7 +95,7 @@ html, body {
    Typography
    ============================================ */
 :root {
-  --font-ui: 'DM Sans', system-ui, sans-serif;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --text-xs: 11px;
