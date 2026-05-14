@@ -29,3 +29,8 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+
+# Local-only scratch / planning docs and Claude Code worktrees
+.claude/worktrees/
+MONOMARK_*.md
+MARROW_*.md
