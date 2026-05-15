@@ -67,18 +67,15 @@
   transition: opacity 120ms ease;
   max-height: 70vh;
   overflow-y: auto;
-  scrollbar-width: thin;
+  /* Hide the scrollbar — long outlines still scroll via wheel/trackpad,
+   * matching the editor's own scrollbarless pattern. */
+  scrollbar-width: none;
 }
 
 .expanded::-webkit-scrollbar {
-  width: 4px;
-}
-.expanded::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: 2px;
-}
-.expanded::-webkit-scrollbar-track {
-  background: transparent;
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .toc:hover .expanded {
