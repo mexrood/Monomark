@@ -1,32 +1,34 @@
 /* ── Outline (Table of Contents) ──────────────────────────────────────────────
  * Linear/Stripe-style: collapsed bars by default, hover anywhere on the
- * container expands the full text TOC as an absolute overlay on top of the
- * leftmost prose. Sticky-positioned so it follows the scroll.
+ * container expands the full text TOC as an absolute overlay with a real
+ * backdrop. Fixed-positioned at viewport center so it does NOT scroll with
+ * the document — bars are a quiet ambient indicator, not a moving rail.
+ *
+ * Horizontal `left` is set inline from the renderer based on sidebarOpen.
  */
 .toc {
-  position: sticky;
-  top: 80px;
-  align-self: flex-start;
-  flex-shrink: 0;
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
   width: 16px;
-  margin-left: 24px;
-  margin-top: 64px; /* aligns just under the first prose line */
 }
 
 /* ── BARS (default state) ─────────────────────────────────────────────────── */
 .bars {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 9px; /* 1.5× of the previous 6px — quieter rhythm */
   padding: 4px 0;
   transition: opacity 120ms ease;
 }
 
 .bar {
   height: 2px;
-  background: var(--text-tertiary);
+  background: var(--border-strong);
+  opacity: 0.35;
   border-radius: 1px;
-  transition: width 150ms ease, background 150ms ease;
+  transition: width 150ms ease, background 150ms ease, opacity 150ms ease;
   flex-shrink: 0;
 }
 
@@ -39,6 +41,7 @@
 
 .bar.active {
   background: var(--text-primary);
+  opacity: 1;
   width: 16px;
 }
 
@@ -50,28 +53,37 @@
 /* ── EXPANDED (hover state) ───────────────────────────────────────────────── */
 .expanded {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 0;
+  transform: translateY(-50%);
   min-width: 220px;
-  padding: 4px 0;
+  padding: 8px 6px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  box-shadow: var(--shadow-popover);
   opacity: 0;
   pointer-events: none;
   transition: opacity 120ms ease;
+  max-height: 70vh;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.expanded::-webkit-scrollbar {
+  width: 4px;
+}
+.expanded::-webkit-scrollbar-thumb {
+  background: var(--border-default);
+  border-radius: 2px;
+}
+.expanded::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .toc:hover .expanded {
   opacity: 1;
   pointer-events: auto;
-}
-
-/* Section label — matches sidebar VAULT tokens */
-.label {
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-tertiary);
-  padding: 4px 12px 8px;
 }
 
 /* Items — kept identical to the previous text-TOC look */

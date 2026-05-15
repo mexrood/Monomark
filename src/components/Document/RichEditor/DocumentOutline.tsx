@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react'
 import type { Editor } from '@tiptap/react'
 import styles from './DocumentOutline.module.css'
+import { useUIStore } from '../../../store/useUIStore'
 
 interface Heading {
   level: number
@@ -17,6 +18,7 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activePos, setActivePos] = useState<number>(-1)
   const userScrollLockRef = useRef(false)
+  const sidebarOpen = useUIStore(s => s.sidebarOpen)
 
   // ── Extract headings whenever the editor doc changes ────────────────────────
   useEffect(() => {
@@ -139,7 +141,11 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
   }
 
   return (
-    <aside className={styles.toc} aria-label="Document outline">
+    <aside
+      className={styles.toc}
+      aria-label="Document outline"
+      style={{ left: sidebarOpen ? 256 : 16 }}
+    >
       <div className={styles.bars}>
         {headings.map(h => {
           const lvl = Math.min(Math.max(h.level, 1), 6)
