@@ -14,10 +14,30 @@ interface Props {
   scrollContainer: HTMLElement | null
 }
 
+// ── Windowed minimap geometry ─────────────────────────────────────────────────
+const WINDOW_SIZE = 15 // bars visible at once for long documents
+const BAR_HEIGHT = 2
+const BAR_GAP = 9
+const BAR_SLOT = BAR_HEIGHT + BAR_GAP // vertical pitch of one bar
+
+function computeWindow(activeIdx: number, total: number, size: number) {
+  if (total <= size) return { start: 0, end: total }
+  const half = Math.floor(size / 2)
+  let start = Math.max(0, activeIdx - half)
+  let end = start + size
+  if (end > total) {
+    end = total
+    start = end - size
+  }
+  return { start, end }
+}
+
 export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) => {
   const [headings, setHeadings] = useState<Heading[]>([])
   const [activePos, setActivePos] = useState<number>(-1)
+  const [isHovered, setIsHovered] = useState(false)
   const userScrollLockRef = useRef(false)
+  const expandedRef = useRef<HTMLDivElement>(null)
   const sidebarOpen = useUIStore(s => s.sidebarOpen)
 
   // ── Extract headings whenever the editor doc changes ────────────────────────
@@ -100,15 +120,35 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
     }
 
     computeActive()
+    // Coalesce scroll bursts into one update per frame — a fast flick can fire
+    // dozens of scroll events, and recomputing on each one makes the windowed
+    // minimap jitter as activePos skips around.
+    let rafId = 0
     const onScroll = () => {
       // Don't update active during programmatic smooth-scroll: it briefly
       // flickers through earlier headings.
       if (userScrollLockRef.current) return
-      computeActive()
+      if (rafId) return
+      rafId = requestAnimationFrame(() => {
+        rafId = 0
+        computeActive()
+      })
     }
     scrollContainer.addEventListener('scroll', onScroll, { passive: true })
-    return () => scrollContainer.removeEventListener('scroll', onScroll)
+    return () => {
+      scrollContainer.removeEventListener('scroll', onScroll)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
   }, [editor, scrollContainer, headings])
+
+  // ── On hover, bring the active item into view inside the expanded panel ─────
+  useEffect(() => {
+    if (!isHovered || !expandedRef.current) return
+    const activeEl = expandedRef.current.querySelector(
+      `[data-heading-id="${activePos}"]`,
+    )
+    activeEl?.scrollIntoView({ block: 'center', behavior: 'instant' })
+  }, [isHovered, activePos])
 
   if (!editor || headings.length < 3) return null
 
@@ -140,24 +180,44 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
     }
   }
 
+  const total = headings.length
+  const isWindowed = total > WINDOW_SIZE
+  const activeIdx = Math.max(0, headings.findIndex(h => h.pos === activePos))
+  const { start, end } = computeWindow(activeIdx, total, WINDOW_SIZE)
+  const trackOffset = -start * BAR_SLOT
+  const visibleCount = Math.min(total, WINDOW_SIZE)
+  const viewportHeight = visibleCount * BAR_SLOT - BAR_GAP
+
   return (
     <aside
       className={styles.toc}
       aria-label="Document outline"
       style={{ left: sidebarOpen ? 256 : 16 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={styles.bars}>
-        {headings.map(h => {
-          const lvl = Math.min(Math.max(h.level, 1), 6)
-          const cls = [
-            styles.bar,
-            styles[`level${lvl}`],
-            h.pos === activePos ? styles.active : '',
-          ].filter(Boolean).join(' ')
-          return <div key={h.pos} className={cls} aria-hidden="true" />
-        })}
+      <div
+        className={[styles.barsViewport, isWindowed ? styles.windowed : '']
+          .filter(Boolean).join(' ')}
+        style={{ height: viewportHeight }}
+      >
+        <div
+          className={styles.barsTrack}
+          style={{ transform: `translateY(${trackOffset}px)` }}
+        >
+          {headings.map((h, i) => {
+            const lvl = Math.min(Math.max(h.level, 1), 6)
+            const cls = [
+              styles.bar,
+              styles[`level${lvl}`],
+              i === activeIdx ? styles.active : '',
+              isWindowed && (i < start || i >= end) ? styles.outOfWindow : '',
+            ].filter(Boolean).join(' ')
+            return <div key={h.pos} className={cls} aria-hidden="true" />
+          })}
+        </div>
       </div>
-      <div className={styles.expanded}>
+      <div className={styles.expanded} ref={expandedRef}>
         {headings.map(h => {
           const lvl = Math.min(Math.max(h.level, 1), 6)
           const cls = [
@@ -169,6 +229,7 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
             <a
               key={h.pos}
               href={`#h-${h.pos}`}
+              data-heading-id={h.pos}
               className={cls}
               onClick={(e) => { e.preventDefault(); scrollTo(h.pos) }}
               title={h.text}

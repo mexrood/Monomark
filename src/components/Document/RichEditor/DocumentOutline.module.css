@@ -14,13 +14,34 @@
   width: 16px;
 }
 
-/* ── BARS (default state) ─────────────────────────────────────────────────── */
-.bars {
+/* ── BARS (default state) — windowed minimap ──────────────────────────────────
+ * For long documents only a window of ~15 bars is shown at once. All bars are
+ * rendered into .barsTrack; the track is translated so the active region sits
+ * in view, and bars outside the window fade to opacity 0. The viewport masks
+ * its top/bottom edges so the window edge fades instead of hard-clipping.
+ */
+.barsViewport {
+  position: relative;
+  overflow: hidden;
+  transition: opacity 120ms ease;
+}
+
+/* Edge fade — only meaningful when the document overflows the window */
+.barsViewport.windowed {
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black 12%,
+    black 88%,
+    transparent 100%
+  );
+}
+
+.barsTrack {
   display: flex;
   flex-direction: column;
   gap: 9px; /* 1.5× of the previous 6px — quieter rhythm */
-  padding: 4px 0;
-  transition: opacity 120ms ease;
+  transition: transform 200ms ease;
 }
 
 .bar {
@@ -28,7 +49,7 @@
   background: var(--border-strong);
   opacity: 0.35;
   border-radius: 1px;
-  transition: width 150ms ease, background 150ms ease, opacity 150ms ease;
+  transition: width 150ms ease, background 150ms ease, opacity 200ms ease;
   flex-shrink: 0;
 }
 
@@ -45,8 +66,13 @@
   width: 16px;
 }
 
+/* Bars outside the current window — fully transparent but still laid out */
+.bar.outOfWindow {
+  opacity: 0;
+}
+
 /* Hover anywhere in .toc → bars fade out, expanded TOC fades in */
-.toc:hover .bars {
+.toc:hover .barsViewport {
   opacity: 0;
 }
 
