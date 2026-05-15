@@ -1,33 +1,70 @@
 /* ── Outline (Table of Contents) ──────────────────────────────────────────────
- * Renders to the LEFT of the document. Sticky-positioned inside the editor's
- * scroll container so it follows the user while they scroll.
+ * Linear/Stripe-style: collapsed bars by default, hover anywhere on the
+ * container expands the full text TOC as an absolute overlay on top of the
+ * leftmost prose. Sticky-positioned so it follows the scroll.
  */
-.outline {
+.toc {
   position: sticky;
   top: 80px;
   align-self: flex-start;
   flex-shrink: 0;
-  width: 220px;
+  width: 16px;
   margin-left: 24px;
-  margin-top: 48px; /* aligns with ProseMirror's 48px top padding */
-  max-height: calc(100vh - 120px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  padding: 0 8px;
+  margin-top: 64px; /* aligns just under the first prose line */
 }
 
-.outline::-webkit-scrollbar {
-  width: 4px;
-}
-.outline::-webkit-scrollbar-thumb {
-  background: var(--border-default);
-  border-radius: 2px;
-}
-.outline::-webkit-scrollbar-track {
-  background: transparent;
+/* ── BARS (default state) ─────────────────────────────────────────────────── */
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0;
+  transition: opacity 120ms ease;
 }
 
-/* Section label — matches the sidebar VAULT label tokens */
+.bar {
+  height: 2px;
+  background: var(--text-tertiary);
+  border-radius: 1px;
+  transition: width 150ms ease, background 150ms ease;
+  flex-shrink: 0;
+}
+
+.bar.level1 { width: 14px; }
+.bar.level2 { width: 11px; }
+.bar.level3 { width: 8px; }
+.bar.level4,
+.bar.level5,
+.bar.level6 { width: 6px; }
+
+.bar.active {
+  background: var(--text-primary);
+  width: 16px;
+}
+
+/* Hover anywhere in .toc → bars fade out, expanded TOC fades in */
+.toc:hover .bars {
+  opacity: 0;
+}
+
+/* ── EXPANDED (hover state) ───────────────────────────────────────────────── */
+.expanded {
+  position: absolute;
+  top: 0;
+  left: 0;
+  min-width: 220px;
+  padding: 4px 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.toc:hover .expanded {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Section label — matches sidebar VAULT tokens */
 .label {
   font-size: 11px;
   font-weight: 500;
@@ -37,30 +74,21 @@
   padding: 4px 12px 8px;
 }
 
-.items {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-/* Heading items — sized + colored like sidebar TreeNode rows */
+/* Items — kept identical to the previous text-TOC look */
 .item {
   display: block;
-  width: 100%;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-family: var(--font-ui);
-  font-size: var(--text-nav); /* 14px */
-  color: var(--text-secondary);
-  text-align: left;
   padding: 4px 12px;
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
   border-radius: var(--radius-md);
+  line-height: 1.5;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.5;
-  transition: background var(--transition-fast), color var(--transition-fast);
+  transition: background 100ms ease, color 100ms ease;
+  cursor: pointer;
 }
 
 .item:hover {
@@ -68,13 +96,14 @@
   color: var(--text-primary);
 }
 
-.item.active {
+.itemActive {
   color: var(--text-primary);
   font-weight: 500;
 }
 
-/* Level indentation — h1 flush left, deeper levels nest in */
-.level1 { padding-left: 12px; }
-.level2 { padding-left: 24px; }
-.level3 { padding-left: 36px; }
-.level4 { padding-left: 48px; font-size: 13px; }
+.itemLevel1 { padding-left: 12px; }
+.itemLevel2 { padding-left: 24px; }
+.itemLevel3 { padding-left: 36px; }
+.itemLevel4,
+.itemLevel5,
+.itemLevel6 { padding-left: 48px; font-size: 13px; }

@@ -139,26 +139,37 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
   }
 
   return (
-    <aside className={styles.outline} aria-label="Document outline">
-      <div className={styles.label}>On this page</div>
-      <div className={styles.items}>
+    <aside className={styles.toc} aria-label="Document outline">
+      <div className={styles.bars}>
         {headings.map(h => {
-          const lvl = Math.min(Math.max(h.level, 1), 4)
+          const lvl = Math.min(Math.max(h.level, 1), 6)
           const cls = [
-            styles.item,
+            styles.bar,
             styles[`level${lvl}`],
             h.pos === activePos ? styles.active : '',
           ].filter(Boolean).join(' ')
+          return <div key={h.pos} className={cls} aria-hidden="true" />
+        })}
+      </div>
+      <div className={styles.expanded}>
+        <div className={styles.label}>On this page</div>
+        {headings.map(h => {
+          const lvl = Math.min(Math.max(h.level, 1), 6)
+          const cls = [
+            styles.item,
+            styles[`itemLevel${lvl}`],
+            h.pos === activePos ? styles.itemActive : '',
+          ].filter(Boolean).join(' ')
           return (
-            <button
+            <a
               key={h.pos}
+              href={`#h-${h.pos}`}
               className={cls}
-              onClick={() => scrollTo(h.pos)}
+              onClick={(e) => { e.preventDefault(); scrollTo(h.pos) }}
               title={h.text}
-              type="button"
             >
               {h.text || '(untitled)'}
-            </button>
+            </a>
           )
         })}
       </div>
