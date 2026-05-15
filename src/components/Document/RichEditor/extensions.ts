@@ -63,6 +63,7 @@ export function buildExtensions(_vaultPath: string): Extensions {
   return [
     StarterKit.configure({
       codeBlock: false,                             // replaced by CodeBlockLowlight
+      link: false,                                  // replaced by standalone Link below
       heading:   { levels: [1, 2, 3, 4, 5, 6] },
       dropcursor: { color: 'var(--accent)', width: 2 },
     }),

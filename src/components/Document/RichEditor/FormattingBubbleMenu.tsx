@@ -5,14 +5,20 @@ import {
   Heading1,
   Heading2,
   Heading3,
+  Heading4,
   Bold,
   Italic,
   Strikethrough,
   Code,
-  FileCode,
-  Quote,
   Link,
   Highlighter,
+  MoreHorizontal,
+  List,
+  ListOrdered,
+  CheckSquare,
+  Quote,
+  Minus,
+  Table,
 } from 'lucide-react'
 import styles from './RichEditor.module.css'
 
@@ -20,16 +26,21 @@ interface Props {
   editor: Editor | null
 }
 
-interface MenuPos {
+interface Anchor {
   x: number
-  y: number
+  top: number
+  bottom: number
 }
 
+const ICON = { size: 16, strokeWidth: 1.5 } as const
+// Room (px) the toolbar needs above the selection before it flips below.
+const FLIP_THRESHOLD = 90
+
 export const FormattingBubbleMenu: React.FC<Props> = ({ editor }) => {
-  const [pos, setPos] = useState<MenuPos | null>(null)
+  const [anchor, setAnchor] = useState<Anchor | null>(null)
+  const [expanded, setExpanded] = useState(false)
   const [linkMode, setLinkMode] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
-  const menuRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef(0)
 
   // ── Track selection position ─────────────────────────────────────────
@@ -39,36 +50,64 @@ export const FormattingBubbleMenu: React.FC<Props> = ({ editor }) => {
     const refresh = () => {
       cancelAnimationFrame(rafRef.current)
       rafRef.current = requestAnimationFrame(() => {
+        if (editor.isDestroyed) return
         const { selection } = editor.state
-        if (selection.empty || editor.isActive('codeBlock')) {
-          setPos(null)
-          setLinkMode(false)
+        // No toolbar for collapsed selections, code blocks or tables —
+        // inline formatting does not apply there.
+        if (
+          selection.empty ||
+          editor.isActive('codeBlock') ||
+          editor.isActive('table')
+        ) {
+          setAnchor(null)
           return
         }
         const domSel = window.getSelection()
-        if (!domSel?.rangeCount) { setPos(null); return }
+        if (!domSel?.rangeCount) { setAnchor(null); return }
         const rect = domSel.getRangeAt(0).getBoundingClientRect()
-        if (!rect.width) { setPos(null); return }
-        setPos({ x: rect.left + rect.width / 2, y: rect.top - 6 })
+        if (!rect.width) { setAnchor(null); return }
+        setAnchor({
+          x: rect.left + rect.width / 2,
+          top: rect.top,
+          bottom: rect.bottom,
+        })
       })
     }
 
     const hide = () => {
-      setPos(null)
+      setAnchor(null)
+      setExpanded(false)
       setLinkMode(false)
     }
 
     editor.on('selectionUpdate', refresh)
     editor.on('transaction', refresh)
     editor.on('blur', hide)
+    // Follow the selection while the document scrolls.
+    window.addEventListener('scroll', refresh, true)
 
     return () => {
       cancelAnimationFrame(rafRef.current)
       editor.off('selectionUpdate', refresh)
       editor.off('transaction', refresh)
       editor.off('blur', hide)
+      window.removeEventListener('scroll', refresh, true)
     }
   }, [editor])
+
+  // ── Esc closes the toolbar ───────────────────────────────────────────
+  useEffect(() => {
+    if (!anchor) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setAnchor(null)
+        setExpanded(false)
+        setLinkMode(false)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [anchor])
 
   // ── Link handling ────────────────────────────────────────────────────
   const handleLinkClick = () => {
@@ -95,126 +134,168 @@ export const FormattingBubbleMenu: React.FC<Props> = ({ editor }) => {
   }
 
   // ── Render ───────────────────────────────────────────────────────────
-  if (!pos || !editor) return null
+  if (!anchor || !editor) return null
+
+  // Flip below the selection only when there is no room above it.
+  const placeBelow = anchor.top - FLIP_THRESHOLD < 8
+  const top = placeBelow ? anchor.bottom + 8 : anchor.top - 8
+  const wrapTransform = placeBelow
+    ? 'translateX(-50%)'
+    : 'translate(-50%, -100%)'
 
   const menu = (
     <div
-      ref={menuRef}
-      className={styles.bubbleMenu}
       style={{
         position: 'fixed',
-        left: pos.x,
-        top: pos.y,
-        transform: 'translate(-50%, -100%)',
+        left: anchor.x,
+        top,
+        transform: wrapTransform,
         zIndex: 500,
       }}
       // Prevent focus loss when clicking toolbar buttons
       onMouseDown={e => e.preventDefault()}
     >
-      {linkMode ? (
-        <form className={styles.bubbleLinkForm} onSubmit={applyLink}>
-          <input
-            className={styles.bubbleLinkInput}
-            type="url"
-            placeholder="https://…"
-            value={linkUrl}
-            autoFocus
-            onChange={e => setLinkUrl(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Escape') { setLinkMode(false); editor.commands.focus() } }}
-          />
-          <button type="submit" className={styles.bubbleBtn} title="Apply">✓</button>
-          <button type="button" className={styles.bubbleBtn} title="Cancel"
-            onClick={() => { setLinkMode(false); editor.commands.focus() }}>✕</button>
-        </form>
-      ) : (
-        <>
-          {/* Headings */}
-          <BBtn editor={editor} active={editor.isActive('heading', { level: 1 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="Heading 1">
-            <Heading1 size={14} />
-          </BBtn>
-          <BBtn editor={editor} active={editor.isActive('heading', { level: 2 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="Heading 2">
-            <Heading2 size={14} />
-          </BBtn>
-          <BBtn editor={editor} active={editor.isActive('heading', { level: 3 })}
-            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="Heading 3">
-            <Heading3 size={14} />
-          </BBtn>
+      <div className={styles.toolbar}>
+        {linkMode ? (
+          <form className={styles.linkForm} onSubmit={applyLink}>
+            <input
+              className={styles.linkInput}
+              type="url"
+              placeholder="https://…"
+              value={linkUrl}
+              autoFocus
+              onChange={e => setLinkUrl(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Escape') { setLinkMode(false); editor.commands.focus() }
+              }}
+            />
+            <button type="submit" className={styles.toolbarBtn} title="Apply">✓</button>
+            <button
+              type="button"
+              className={styles.toolbarBtn}
+              title="Cancel"
+              onClick={() => { setLinkMode(false); editor.commands.focus() }}
+            >✕</button>
+          </form>
+        ) : (
+          <>
+            <div className={styles.row}>
+              {/* Headings */}
+              <div className={styles.group}>
+                <TBtn active={editor.isActive('heading', { level: 2 })} title="Heading 2"
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}>
+                  <Heading2 {...ICON} />
+                </TBtn>
+                <TBtn active={editor.isActive('heading', { level: 3 })} title="Heading 3"
+                  onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}>
+                  <Heading3 {...ICON} />
+                </TBtn>
+              </div>
 
-          <Divider />
+              {/* Text marks */}
+              <div className={styles.group}>
+                <TBtn active={editor.isActive('bold')} title="Bold"
+                  onClick={() => editor.chain().focus().toggleBold().run()}>
+                  <Bold {...ICON} />
+                </TBtn>
+                <TBtn active={editor.isActive('italic')} title="Italic"
+                  onClick={() => editor.chain().focus().toggleItalic().run()}>
+                  <Italic {...ICON} />
+                </TBtn>
+                <TBtn active={editor.isActive('strike')} title="Strikethrough"
+                  onClick={() => editor.chain().focus().toggleStrike().run()}>
+                  <Strikethrough {...ICON} />
+                </TBtn>
+              </div>
 
-          {/* Text marks */}
-          <BBtn editor={editor} active={editor.isActive('bold')}
-            onClick={() => editor.chain().focus().toggleBold().run()} title="Bold">
-            <Bold size={14} />
-          </BBtn>
-          <BBtn editor={editor} active={editor.isActive('italic')}
-            onClick={() => editor.chain().focus().toggleItalic().run()} title="Italic">
-            <Italic size={14} />
-          </BBtn>
-          <BBtn editor={editor} active={editor.isActive('strike')}
-            onClick={() => editor.chain().focus().toggleStrike().run()} title="Strikethrough">
-            <Strikethrough size={14} />
-          </BBtn>
+              {/* Link / code / highlight */}
+              <div className={styles.group}>
+                <TBtn active={editor.isActive('link')} title="Link"
+                  onClick={handleLinkClick}>
+                  <Link {...ICON} />
+                </TBtn>
+                <TBtn active={editor.isActive('code')} title="Inline code"
+                  onClick={() => editor.chain().focus().toggleCode().run()}>
+                  <Code {...ICON} />
+                </TBtn>
+                <TBtn active={editor.isActive('highlight')} title="Highlight"
+                  onClick={() => editor.chain().focus().toggleHighlight().run()}>
+                  <Highlighter {...ICON} />
+                </TBtn>
+              </div>
 
-          <Divider />
+              {/* Overflow toggle */}
+              <div className={styles.group}>
+                <TBtn active={expanded} title="More"
+                  onClick={() => setExpanded(e => !e)}>
+                  <MoreHorizontal {...ICON} />
+                </TBtn>
+              </div>
+            </div>
 
-          {/* Code */}
-          <BBtn editor={editor} active={editor.isActive('code')}
-            onClick={() => editor.chain().focus().toggleCode().run()} title="Inline Code">
-            <Code size={14} />
-          </BBtn>
-          <BBtn editor={editor} active={editor.isActive('codeBlock')}
-            onClick={() => editor.chain().focus().toggleCodeBlock().run()} title="Code Block">
-            <FileCode size={14} />
-          </BBtn>
-
-          <Divider />
-
-          {/* Block */}
-          <BBtn editor={editor} active={editor.isActive('blockquote')}
-            onClick={() => editor.chain().focus().toggleBlockquote().run()} title="Blockquote">
-            <Quote size={14} />
-          </BBtn>
-
-          <Divider />
-
-          {/* Link & Highlight */}
-          <BBtn editor={editor} active={editor.isActive('link')}
-            onClick={handleLinkClick} title="Link">
-            <Link size={14} />
-          </BBtn>
-          <BBtn editor={editor} active={editor.isActive('highlight')}
-            onClick={() => editor.chain().focus().toggleHighlight().run()} title="Highlight">
-            <Highlighter size={14} />
-          </BBtn>
-        </>
-      )}
+            {expanded && (
+              <div className={`${styles.row} ${styles.overflowRow}`}>
+                <div className={styles.group}>
+                  <TBtn active={editor.isActive('heading', { level: 1 })} title="Heading 1"
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}>
+                    <Heading1 {...ICON} />
+                  </TBtn>
+                  <TBtn active={editor.isActive('heading', { level: 4 })} title="Heading 4"
+                    onClick={() => editor.chain().focus().toggleHeading({ level: 4 }).run()}>
+                    <Heading4 {...ICON} />
+                  </TBtn>
+                  <TBtn active={editor.isActive('bulletList')} title="Bullet list"
+                    onClick={() => editor.chain().focus().toggleBulletList().run()}>
+                    <List {...ICON} />
+                  </TBtn>
+                  <TBtn active={editor.isActive('orderedList')} title="Numbered list"
+                    onClick={() => editor.chain().focus().toggleOrderedList().run()}>
+                    <ListOrdered {...ICON} />
+                  </TBtn>
+                  <TBtn active={editor.isActive('taskList')} title="To-do list"
+                    onClick={() => editor.chain().focus().toggleTaskList().run()}>
+                    <CheckSquare {...ICON} />
+                  </TBtn>
+                  <TBtn active={editor.isActive('blockquote')} title="Quote"
+                    onClick={() => editor.chain().focus().toggleBlockquote().run()}>
+                    <Quote {...ICON} />
+                  </TBtn>
+                  <TBtn active={false} title="Divider"
+                    onClick={() => editor.chain().focus().setHorizontalRule().run()}>
+                    <Minus {...ICON} />
+                  </TBtn>
+                  <TBtn active={false} title="Table"
+                    onClick={() => editor.chain().focus()
+                      .insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}>
+                    <Table {...ICON} />
+                  </TBtn>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   )
 
   return ReactDOM.createPortal(menu, document.body)
 }
 
-// ── Small helper components ───────────────────────────────────────────────────
+// ── Toolbar button ────────────────────────────────────────────────────────────
 
-interface BBtnProps {
-  editor: Editor
+interface TBtnProps {
   active: boolean
   onClick: () => void
   title: string
   children: React.ReactNode
 }
 
-const BBtn: React.FC<BBtnProps> = ({ active, onClick, title, children }) => (
+const TBtn: React.FC<TBtnProps> = ({ active, onClick, title, children }) => (
   <button
-    className={`${styles.bubbleBtn} ${active ? styles.bubbleBtnActive : ''}`}
+    className={`${styles.toolbarBtn} ${active ? styles.toolbarBtnActive : ''}`}
     onClick={onClick}
     title={title}
   >
     {children}
   </button>
 )
-
-const Divider: React.FC = () => <span className={styles.bubbleDivider} />
