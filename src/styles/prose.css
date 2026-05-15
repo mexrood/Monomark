@@ -69,7 +69,7 @@
 .ProseMirror p {
   font-size: 16px;
   line-height: 1.5;
-  color: var(--text-primary);
+  color: var(--text-body);
   margin: 0;
   padding: 3px 0;
   min-height: 1em;
@@ -170,7 +170,7 @@
 .prose ol,
 .ProseMirror ol { list-style: decimal; padding-left: 28px; margin: 4px 0; }
 .prose li,
-.ProseMirror li { margin: 2px 0; padding: 3px 0; line-height: 1.6; }
+.ProseMirror li { margin: 2px 0; padding: 3px 0; line-height: 1.6; color: var(--text-body); }
 .prose ::marker,
 .ProseMirror ::marker { color: var(--text-secondary); }
 .prose li > ul, .prose li > ol,
@@ -188,7 +188,7 @@
   margin: 6px 0;
 }
 .prose blockquote p,
-.ProseMirror blockquote p { margin: 0; padding: 2px 0; }
+.ProseMirror blockquote p { margin: 0; padding: 2px 0; color: var(--text-primary); }
 
 /* ── Horizontal rule ────────────────────────────────────────────────────────── */
 .prose hr,

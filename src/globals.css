@@ -170,6 +170,8 @@ h1, h2, h3, h4, h5, h6,
   --text-tertiary: #6E6E6E;
   --text-disabled: #333333;
   --text-inverse: #131313;
+  /* Body prose — softer than primary so headings stand out */
+  --text-body: rgba(255, 255, 255, 0.65);
 
   --accent: #FFFFFF;
   --accent-hover: rgba(255,255,255,0.8);
@@ -233,6 +235,7 @@ h1, h2, h3, h4, h5, h6,
   --text-tertiary: #888888;
   --text-disabled: #CCCCCC;
   --text-inverse: #FFFFFF;
+  --text-body: rgba(0, 0, 0, 0.7);
 
   --accent: #111111;
   --accent-hover: rgba(0,0,0,0.7);
