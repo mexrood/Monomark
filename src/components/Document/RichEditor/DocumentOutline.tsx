@@ -152,7 +152,6 @@ export const DocumentOutline: React.FC<Props> = ({ editor, scrollContainer }) =>
         })}
       </div>
       <div className={styles.expanded}>
-        <div className={styles.label}>On this page</div>
         {headings.map(h => {
           const lvl = Math.min(Math.max(h.level, 1), 6)
           const cls = [

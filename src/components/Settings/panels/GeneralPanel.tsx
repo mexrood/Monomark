@@ -48,13 +48,10 @@ export const GeneralPanel: React.FC = () => {
         </button>
       </Row>
 
-      <div className={styles.sectionDivider} />
-      <div className={styles.sectionLabel}>About</div>
-
+      <UpdatesRow state={updateState} hasUpdater={!!updater} />
       <Row label="Version">
         <span className={styles.value}>{version || '—'}</span>
       </Row>
-      <UpdatesRow state={updateState} hasUpdater={!!updater} />
       <Row label="License">
         <span className={styles.value}>MIT</span>
       </Row>
