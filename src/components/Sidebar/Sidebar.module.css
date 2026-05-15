@@ -389,6 +389,20 @@
   border-radius: var(--radius-md);
 }
 
+/* External file drag — every folder gets a quiet dashed hint */
+.treeRowExtCandidate {
+  outline: 1px dashed var(--text-tertiary);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
+/* The folder the cursor is over gets a stronger, solid accent outline */
+.treeRowExtActive {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+  background: var(--bg-elev-2) !important;
+}
+
 .treeRowInsertBefore {
   position: relative;
 }

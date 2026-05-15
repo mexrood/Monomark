@@ -221,4 +221,78 @@ export function registerVaultIPC() {
     await fs.writeFile(abs, buf)
     return { ok: true, relPath }
   })
+
+  /**
+   * Copy an external file from the user's filesystem into the vault.
+   * `targetFolderAbs` is either an absolute path inside the vault (e.g. when
+   * dropped on a folder in the tree) or a vault-relative path like 'inbox'.
+   *
+   * conflict:
+   *   - 'fail'       — error out with reason: 'conflict' and the existing path
+   *   - 'replace'    — overwrite the existing file
+   *   - 'keep-both'  — append " (1)", " (2)", … until the name is free
+   */
+  ipcMain.handle('vault:importFile', async (
+    _event,
+    srcAbsPath: string,
+    targetFolder: string,
+    conflict: 'fail' | 'replace' | 'keep-both' = 'keep-both'
+  ): Promise<
+    | { ok: true; path: string; renamedFrom?: string }
+    | { ok: false; reason: 'conflict' | 'outside-vault' | 'no-vault' | 'error'; message?: string; existing?: string }
+  > => {
+    try {
+      const vaultPath = store.get('vaultPath')
+      if (!vaultPath) return { ok: false, reason: 'no-vault' }
+      const vaultAbs = path.resolve(vaultPath)
+
+      // Resolve target dir: absolute path or vault-relative.
+      const targetAbs = path.isAbsolute(targetFolder)
+        ? path.resolve(targetFolder)
+        : path.resolve(vaultAbs, targetFolder)
+
+      if (!targetAbs.startsWith(vaultAbs)) {
+        return { ok: false, reason: 'outside-vault' }
+      }
+
+      await fs.mkdir(targetAbs, { recursive: true })
+
+      const originalName = path.basename(srcAbsPath)
+      let destAbs = path.join(targetAbs, originalName)
+      let renamedFrom: string | undefined
+
+      const exists = async (p: string) => {
+        try { await fs.access(p); return true } catch { return false }
+      }
+
+      if (await exists(destAbs)) {
+        if (conflict === 'fail') {
+          return { ok: false, reason: 'conflict', existing: destAbs }
+        }
+        if (conflict === 'keep-both') {
+          renamedFrom = originalName
+          const ext = path.extname(originalName)
+          const stem = ext ? originalName.slice(0, -ext.length) : originalName
+          for (let i = 1; i < 1000; i++) {
+            const candidate = path.join(targetAbs, `${stem} (${i})${ext}`)
+            if (!(await exists(candidate))) {
+              destAbs = candidate
+              break
+            }
+          }
+        }
+        // 'replace' falls through to copyFile and overwrites
+      }
+
+      // Mark as self-write so the file watcher doesn't pop a "changed externally" dialog.
+      markSelfWrite(destAbs)
+      await fs.copyFile(srcAbsPath, destAbs)
+
+      return renamedFrom
+        ? { ok: true, path: destAbs, renamedFrom }
+        : { ok: true, path: destAbs }
+    } catch (err) {
+      return { ok: false, reason: 'error', message: err instanceof Error ? err.message : String(err) }
+    }
+  })
 }

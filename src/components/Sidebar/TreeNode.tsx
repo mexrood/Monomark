@@ -4,6 +4,7 @@ import { ChevronRight, Folder, FolderOpen, FileText, MoreVertical } from 'lucide
 import type { VaultNode } from '../../types/vault'
 import { useVaultStore } from '../../store/useVaultStore'
 import { useUIStore } from '../../store/useUIStore'
+import { useDragStore } from '../../store/useDragStore'
 import styles from './Sidebar.module.css'
 
 export interface ContextMenuState {
@@ -66,6 +67,13 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   const isActive = document.kind === 'vault' && document.path === node.path
   const isOpen = node.kind === 'folder' && expandedFolders.has(node.path)
   const isRenaming = renamingPath === node.path
+
+  // External drag state (drives dashed/solid drop-target outlines on folders).
+  const externalDragging = useDragStore(s => s.isDragging)
+  const hoveredFolder = useDragStore(s => s.hoveredFolder)
+  const isExternalDropCandidate = node.kind === 'folder' && externalDragging
+  const isExternalDropActive = isExternalDropCandidate && hoveredFolder === node.path
+  const autoExpandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const [renameValue, setRenameValue] = useState('')
   const renameRef = useRef<HTMLInputElement>(null)
@@ -146,22 +154,59 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   }, [node, onDragStart])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes('application/x-monomark-node')) return
-    e.preventDefault()
-    e.stopPropagation()
-    e.dataTransfer.dropEffect = 'move'
-    onDropTarget({ nodePath: node.path, nodeKind: node.kind, parentPath, position: computePosition(e) })
-  }, [node, parentPath, computePosition, onDropTarget])
+    const types = e.dataTransfer.types
+    const isInternal = types.includes('application/x-monomark-node')
+    const isExternal = types.includes('Files') && !isInternal
+
+    if (isInternal) {
+      e.preventDefault()
+      e.stopPropagation()
+      e.dataTransfer.dropEffect = 'move'
+      onDropTarget({ nodePath: node.path, nodeKind: node.kind, parentPath, position: computePosition(e) })
+      return
+    }
+
+    if (isExternal && node.kind === 'folder') {
+      // Accept the drop on this folder; the window-level handler reads
+      // useDragStore.hoveredFolder to know the target.
+      e.preventDefault()
+      e.stopPropagation()
+      e.dataTransfer.dropEffect = 'copy'
+      if (hoveredFolder !== node.path) {
+        useDragStore.getState().setHoveredFolder(node.path)
+      }
+      // Auto-expand collapsed folders after 700ms of hover.
+      if (!isOpen && !autoExpandTimerRef.current) {
+        autoExpandTimerRef.current = setTimeout(() => {
+          toggleFolder(node.path)
+          autoExpandTimerRef.current = null
+        }, 700)
+      }
+    }
+  }, [node, parentPath, computePosition, onDropTarget, hoveredFolder, isOpen, toggleFolder])
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
       onDropTarget(null)
+      if (autoExpandTimerRef.current) {
+        clearTimeout(autoExpandTimerRef.current)
+        autoExpandTimerRef.current = null
+      }
+      // Only clear hoveredFolder if we are still the one set — another folder
+      // entered may have replaced it already.
+      if (useDragStore.getState().hoveredFolder === node.path) {
+        useDragStore.getState().setHoveredFolder(null)
+      }
     }
-  }, [onDropTarget])
+  }, [onDropTarget, node.path])
+
+  useEffect(() => () => {
+    if (autoExpandTimerRef.current) clearTimeout(autoExpandTimerRef.current)
+  }, [])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     const data = e.dataTransfer.getData('application/x-monomark-node')
-    if (!data) return  // external file — let it bubble to <main>
+    if (!data) return  // external file — let it bubble to window-level handler
     e.preventDefault()
     e.stopPropagation()
     const dragging = JSON.parse(data) as { path: string; kind: 'file' | 'folder' }
@@ -184,6 +229,8 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     isDragOver ? styles.treeRowDragOver : '',
     isInsertBefore ? styles.treeRowInsertBefore : '',
     isInsertAfter ? styles.treeRowInsertAfter : '',
+    isExternalDropCandidate ? styles.treeRowExtCandidate : '',
+    isExternalDropActive ? styles.treeRowExtActive : '',
   ].filter(Boolean).join(' ')
 
   return (

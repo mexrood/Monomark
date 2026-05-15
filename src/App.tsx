@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from 'react'
+import React, { useEffect } from 'react'
 import styles from './App.module.css'
 import { TitleBar } from './components/TitleBar/TitleBar'
 import { Sidebar } from './components/Sidebar/Sidebar'
@@ -6,7 +6,7 @@ import { Document } from './components/Document/Document'
 import { Welcome } from './components/Welcome/Welcome'
 import { ConfirmDialog } from './components/Dialog/ConfirmDialog'
 import { SettingsView } from './components/Settings/SettingsView'
-import { DropOverlay } from './components/DropOverlay/DropOverlay'
+import { ToastContainer } from './components/Toast/Toast'
 import { McpStatusDot } from './components/McpStatusDot/McpStatusDot'
 import { ScrollBar } from './components/ScrollBar/ScrollBar'
 import { SearchPalette } from './components/SearchPalette/SearchPalette'
@@ -18,6 +18,7 @@ import { useSearchStore } from './store/useSearchStore'
 import { useDialogStore } from './store/useDialogStore'
 import { useAppStore } from './store/useAppStore'
 import { useUIStore } from './store/useUIStore'
+import { useDragStore } from './store/useDragStore'
 import { flattenTree } from './store/useVaultStore'
 
 
@@ -111,54 +112,60 @@ const MainApp: React.FC = () => {
   const openSettings = useUIStore(s => s.openSettings)
   const searchPaletteOpen = useUIStore(s => s.searchPaletteOpen)
 
-  const [externalDrop, setExternalDrop] = React.useState(false)
+  // ── External file drag & drop ──────────────────────────────────────────────
+  // Window-level listeners coordinate a single source of truth (useDragStore)
+  // for: feedback overlay, sidebar dashed-border styling, and target folder.
+  useEffect(() => {
+    const hasFiles = (e: DragEvent) =>
+      !!e.dataTransfer &&
+      Array.from(e.dataTransfer.types).includes('Files') &&
+      !Array.from(e.dataTransfer.types).includes('application/x-monomark-node')
 
-  const SUPPORTED_EXTS = ['.md', '.txt', '.json', '.yaml', '.yml', '.markdown']
-
-  const openDroppedFile = useCallback((path: string) => {
-    const ext = path.toLowerCase().slice(path.lastIndexOf('.'))
-    if (!SUPPORTED_EXTS.includes(ext)) return
-    setExternalDrop(false)
-    useVaultStore.getState().openDocument(path).catch(() => {})
-  }, [])
-
-  // Show drop overlay when an external file is dragged over the window
-  const handleDragEnter = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('Files') &&
-        !e.dataTransfer.types.includes('application/x-monomark-node')) {
-      setExternalDrop(true)
-    }
-  }, [])
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    if (e.dataTransfer.types.includes('Files') &&
-        !e.dataTransfer.types.includes('application/x-monomark-node')) {
+    const onDragEnter = (e: DragEvent) => {
+      if (!hasFiles(e)) return
       e.preventDefault()
-      e.dataTransfer.dropEffect = 'copy'
+      useDragStore.getState().setDragging(true)
+    }
+    const onDragOver = (e: DragEvent) => {
+      if (!hasFiles(e)) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
+    }
+    const onDragLeave = (e: DragEvent) => {
+      // Browsers fire dragleave on inner element transitions too; only act on
+      // a leave to "outside the window" (relatedTarget === null).
+      if (e.relatedTarget === null) {
+        useDragStore.getState().reset()
+      }
+    }
+    const onDrop = async (e: DragEvent) => {
+      if (!hasFiles(e)) return
+      e.preventDefault()
+      const target = useDragStore.getState().hoveredFolder
+      useDragStore.getState().reset()
+      const files = Array.from(e.dataTransfer?.files || [])
+      if (files.length === 0) return
+      await useVaultStore.getState().importFiles(files, target)
+    }
+
+    window.addEventListener('dragenter', onDragEnter)
+    window.addEventListener('dragover', onDragOver)
+    window.addEventListener('dragleave', onDragLeave)
+    window.addEventListener('drop', onDrop)
+    return () => {
+      window.removeEventListener('dragenter', onDragEnter)
+      window.removeEventListener('dragover', onDragOver)
+      window.removeEventListener('dragleave', onDragLeave)
+      window.removeEventListener('drop', onDrop)
     }
   }, [])
-
-  // Drop on <main> fires when overlay hasn't rendered yet or user drops quickly
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    const file = e.dataTransfer.files[0]
-    if (!file) { setExternalDrop(false); return }
-    const filePath = window.marrow?.util?.getPathForFile(file)
-    if (filePath) openDroppedFile(filePath)
-    else setExternalDrop(false)
-  }, [openDroppedFile])
 
   return (
     <>
       <TitleBar onOpenSettings={() => openSettings()} />
       <McpStatusDot />
       {searchPaletteOpen && <SearchPalette />}
-      <main
-        className={styles.main}
-        onDragEnter={handleDragEnter}
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
+      <main className={styles.main}>
         <Sidebar />
         <div className={styles.contentWrap}>
           <div className={styles.navBlur}>
@@ -172,12 +179,7 @@ const MainApp: React.FC = () => {
           <ScrollBar />
         </div>
       </main>
-      {externalDrop && (
-        <DropOverlay
-          onDrop={openDroppedFile}
-          onCancel={() => setExternalDrop(false)}
-        />
-      )}
+      <ToastContainer />
     </>
   )
 }

@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 import type { VaultNode, VaultFile, DocumentState } from '../types/vault'
+import { useToastStore } from './useToastStore'
+import { attachImageFromBlob } from '../utils/attachImage'
 
 interface VaultStore {
   vaultPath: string | null
@@ -15,6 +17,16 @@ interface VaultStore {
   saveToVault(): Promise<void>
   toggleFolder(path: string): void
   expandPathTo(path: string): void
+  importFiles(files: File[], targetFolder: string | null): Promise<void>
+}
+
+// Supported import extensions.
+const TEXT_EXTS = new Set(['.md', '.markdown', '.txt', '.json', '.yaml', '.yml'])
+const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'])
+
+function extOf(name: string): string {
+  const i = name.lastIndexOf('.')
+  return i >= 0 ? name.slice(i).toLowerCase() : ''
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -136,5 +148,85 @@ export const useVaultStore = create<VaultStore>((set, get) => ({
       current = parent
     }
     set({ expandedFolders: expanded })
+  },
+
+  async importFiles(files, targetFolder) {
+    const vaultPath = get().vaultPath
+    if (!vaultPath || files.length === 0) return
+
+    // Resolve target dir. If null → default to <vault>/inbox.
+    const target = targetFolder ?? `${vaultPath}${sep(vaultPath)}inbox`
+    const folderLabel = target.replace(/\\/g, '/').split('/').pop() || 'vault'
+    const toast = useToastStore.getState()
+
+    const importedPaths: string[] = []
+    const skipped: string[] = []
+    let imageOnlyCount = 0
+
+    for (const file of files) {
+      const ext = extOf(file.name)
+      const srcPath = window.marrow.util?.getPathForFile?.(file)
+
+      if (IMAGE_EXTS.has(ext)) {
+        // Images go to _attachments via the existing image flow regardless of target.
+        try {
+          await attachImageFromBlob(file)
+          imageOnlyCount++
+        } catch {
+          skipped.push(file.name)
+        }
+        continue
+      }
+
+      if (!TEXT_EXTS.has(ext)) {
+        toast.error(`Unsupported file type: ${ext || file.name}`)
+        skipped.push(file.name)
+        continue
+      }
+
+      if (!srcPath) {
+        toast.error(`Could not read path for ${file.name}`)
+        skipped.push(file.name)
+        continue
+      }
+
+      // keep-both is the default — silently rename on conflict.
+      const result = await window.marrow.vault.importFile(srcPath, target, 'keep-both')
+      if (!result.ok) {
+        toast.error(`Failed to import ${file.name}${'message' in result && result.message ? `: ${result.message}` : ''}`)
+        skipped.push(file.name)
+        continue
+      }
+      importedPaths.push(result.path)
+      if (result.renamedFrom) {
+        toast.info(`Renamed "${result.renamedFrom}" → "${result.path.split(/[\\/]/).pop()}" (name was taken)`)
+      }
+    }
+
+    if (importedPaths.length > 0 || imageOnlyCount > 0) {
+      await get().refreshTree()
+    }
+
+    // Build summary toast for text imports.
+    if (importedPaths.length === 1) {
+      const onlyPath = importedPaths[0]
+      const name = onlyPath.split(/[\\/]/).pop()
+      toast.success(`Added: ${name} → ${folderLabel}/`, {
+        action: {
+          label: 'Open',
+          onClick: () => { void get().openDocument(onlyPath) },
+        },
+      })
+    } else if (importedPaths.length > 1) {
+      toast.success(`Added ${importedPaths.length} files → ${folderLabel}/`)
+    }
+
+    if (imageOnlyCount > 0 && importedPaths.length === 0) {
+      toast.success(
+        imageOnlyCount === 1
+          ? 'Image saved to attachments'
+          : `${imageOnlyCount} images saved to attachments`
+      )
+    }
   },
 }))

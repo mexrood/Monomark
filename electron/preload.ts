@@ -90,5 +90,7 @@ contextBridge.exposeInMainWorld('marrow', {
     getFolderOrder: (folderPath: string) => ipcRenderer.invoke('vault:getFolderOrder', folderPath),
     fileExists: (relPath: string) => ipcRenderer.invoke('vault:fileExists', relPath),
     writeBinary: (relPath: string, base64: string) => ipcRenderer.invoke('vault:writeBinary', relPath, base64),
+    importFile: (srcAbsPath: string, targetFolder: string, conflict: 'fail' | 'replace' | 'keep-both' = 'keep-both') =>
+      ipcRenderer.invoke('vault:importFile', srcAbsPath, targetFolder, conflict),
   },
 })

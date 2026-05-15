@@ -3,6 +3,7 @@ import { useVaultStore } from '../../store/useVaultStore'
 import { RichEditor } from './RichEditor/RichEditor'
 import { ExternalView } from './ExternalView'
 import { EmptyState } from './EmptyState'
+import { DropFeedback } from '../DropFeedback/DropFeedback'
 import { scrollRegistry } from '../../utils/scrollRegistry'
 import styles from './Document.module.css'
 
@@ -21,6 +22,7 @@ export const Document: React.FC = () => {
     return (
       <div className={styles.wrap}>
         <EmptyState />
+        <DropFeedback />
       </div>
     )
   }
@@ -37,6 +39,7 @@ export const Document: React.FC = () => {
         <div className={styles.externalWrap} ref={externalRef}>
           <ExternalView content={document.content} filePath={document.path} />
         </div>
+        <DropFeedback />
       </div>
     )
   }
@@ -45,6 +48,7 @@ export const Document: React.FC = () => {
   return (
     <div className={styles.wrap}>
       <RichEditor />
+      <DropFeedback />
     </div>
   )
 }

@@ -35,6 +35,14 @@ interface MarrowVaultAPI {
   getFolderOrder(folderPath: string): Promise<string[] | null>
   fileExists(relPath: string): Promise<boolean>
   writeBinary(relPath: string, base64: string): Promise<{ ok: boolean; relPath: string }>
+  importFile(
+    srcAbsPath: string,
+    targetFolder: string,
+    conflict?: 'fail' | 'replace' | 'keep-both'
+  ): Promise<
+    | { ok: true; path: string; renamedFrom?: string }
+    | { ok: false; reason: 'conflict' | 'outside-vault' | 'no-vault' | 'error'; message?: string; existing?: string }
+  >
 }
 
 interface MarrowFileOpenAPI {
