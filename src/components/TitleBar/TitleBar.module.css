@@ -7,10 +7,26 @@
   -webkit-app-region: drag;
   pointer-events: none;
   user-select: none;
-  background: transparent;
+  /* Canvas is the base (right zone, over the document area); the chrome
+   * zone is painted on top of it for the left part. */
+  background: var(--bg-canvas);
   padding: 0;
   margin: 0;
-  z-index: 9999;
+  /* Above the sidebar (150) so the app menu drops over it, but below the
+   * selection toolbar (500) and popovers so they are never clipped. */
+  z-index: 200;
+}
+
+/* Left zone background — matches the sidebar; width is driven inline from
+ * the same open/collapsed state the sidebar uses. */
+.chromeZone {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  background: var(--bg-chrome);
+  transition: width 200ms ease-out;
+  pointer-events: none;
 }
 
 .leftControls {
@@ -28,9 +44,11 @@
 
 .center {
   position: absolute;
-  left: 50%;
   top: 22px;
+  /* `left` is set inline so the breadcrumb centers within the canvas
+   * (right) zone, not the whole window. */
   transform: translate(-50%, -50%);
+  transition: left 200ms ease-out;
   display: flex;
   align-items: center;
   -webkit-app-region: no-drag;

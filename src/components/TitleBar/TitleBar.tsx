@@ -67,6 +67,8 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSettings }) => {
   const breadcrumb = useBreadcrumb()
 
   const isExternal = docState.kind === 'external'
+  // Mirror the sidebar's own width logic so the titlebar split tracks it.
+  const sidebarWidth = isExternal ? 0 : (sidebarOpen ? 240 : 0)
 
   // Close menu on outside click
   useEffect(() => {
@@ -139,6 +141,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSettings }) => {
   return (
     <div className={styles.titleBar}>
 
+      {/* Chrome-coloured left zone — sits over the canvas base, sized to
+          the sidebar so the titlebar splits along the same vertical edge. */}
+      <div className={styles.chromeZone} style={{ width: sidebarWidth }} />
+
       {/* ── Left ── */}
       <div className={styles.leftControls}>
         {appMode === 'settings' ? (
@@ -207,8 +213,11 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSettings }) => {
         )}
       </div>
 
-      {/* ── Center — breadcrumb ── */}
-      <div className={styles.center}>
+      {/* ── Center — breadcrumb, centered within the canvas zone ── */}
+      <div
+        className={styles.center}
+        style={{ left: `calc((100% + ${sidebarWidth}px) / 2)` }}
+      >
         {appMode === 'settings' ? (
           <span className={styles.breadcrumb}>
             <span className={styles.breadcrumbPath}>Settings</span>
