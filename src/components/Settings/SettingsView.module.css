@@ -5,18 +5,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   background: var(--bg-canvas);
+  /* Native scrollbar is hidden — the shared <ScrollBar/> overlay draws the
+     custom scrollbar, identical to the document area. */
+  scrollbar-width: none;
 }
-
 .view::-webkit-scrollbar {
-  width: 8px;
-}
-.view::-webkit-scrollbar-track {
-  background: transparent;
-}
-.view::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 4px;
-}
-.view::-webkit-scrollbar-thumb:hover {
-  background: var(--text-tertiary);
+  display: none;
 }

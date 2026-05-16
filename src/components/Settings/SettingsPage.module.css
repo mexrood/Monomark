@@ -105,57 +105,71 @@
   padding: 16px 0 4px;
 }
 
-/* ── Updates prominent card ───────────────────────────────────────────────── */
+/* ── Updates card ─────────────────────────────────────────────────────────── */
 
 .updateCardWrap {
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
-.updateHeader {
-  margin-bottom: 16px;
-}
-
-.updateBadge {
-  display: inline-block;
+.cardLabel {
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  padding: 2px 8px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-}
-
-.updateTitle {
-  font-size: 18px;
   font-weight: 600;
-  margin: 0 0 4px;
-  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}
+.cardLabelAccent {
+  color: var(--accent);
 }
 
-.updateSubtitle {
+.cardBody {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.cardContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.cardSubtitle {
   font-size: 13px;
   color: var(--text-secondary);
-  margin: 0;
+}
+
+.cardAction {
+  flex-shrink: 0;
 }
 
 .progress {
   height: 4px;
-  background: var(--bg-elev-1);
+  background: var(--border-subtle);
   border-radius: 2px;
-  margin: 16px 0;
+  margin-top: 12px;
   overflow: hidden;
 }
 
 .progressBar {
   height: 100%;
-  background: var(--accent);
+  background: var(--text-primary);
   transition: width 200ms ease-out;
 }
 
 .releaseNotes {
-  margin: 12px 0;
+  margin-top: 12px;
   font-size: 13px;
   color: var(--text-secondary);
 }
@@ -179,8 +193,10 @@
   overflow-y: auto;
 }
 
-.updateActions {
-  margin-top: 16px;
-  display: flex;
-  gap: 8px;
+.spin {
+  animation: spinSettings 1s linear infinite;
+}
+@keyframes spinSettings {
+  from { transform: rotate(0); }
+  to   { transform: rotate(360deg); }
 }
