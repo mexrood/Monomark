@@ -1,5 +1,22 @@
 .view {
-  flex: 1;
-  display: flex;
+  /* Fill the document area exactly and own the vertical scroll. A solid
+     canvas background guarantees nothing behind shows through. */
+  height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--bg-canvas);
+}
+
+.view::-webkit-scrollbar {
+  width: 8px;
+}
+.view::-webkit-scrollbar-track {
+  background: transparent;
+}
+.view::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 4px;
+}
+.view::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
 }

@@ -1,5 +1,4 @@
 import React from 'react'
-import { Power } from 'lucide-react'
 import { SettingsPage, Section, Row } from '../SettingsPage'
 import { Button } from '../../ui/Button'
 import { Switch } from '../../ui/Switch'
@@ -27,11 +26,7 @@ export const LaunchPanel: React.FC = () => {
           title="Quit Monomark"
           description="Fully exit Monomark (not just hide to tray). Closing the window hides Monomark to the system tray — the MCP server keeps running so Claude can always reach your vault."
           action={
-            <Button
-              variant="danger"
-              icon={<Power size={14} strokeWidth={1.5} />}
-              onClick={handleQuit}
-            >
+            <Button variant="secondary" onClick={handleQuit}>
               Quit Monomark
             </Button>
           }

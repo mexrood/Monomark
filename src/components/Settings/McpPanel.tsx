@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Copy, RefreshCw, Eye, EyeOff, CheckCircle, XCircle, Loader } from 'lucide-react'
+import { Copy, RefreshCw, RotateCw, Download, Eye, EyeOff, CheckCircle, XCircle, Loader } from 'lucide-react'
 import styles from './McpPanel.module.css'
 import { SettingsPage, Section, Row } from './SettingsPage'
 import { Button } from '../ui/Button'
@@ -145,6 +145,11 @@ export const McpPanel: React.FC = () => {
             action={
               <Button
                 variant={isConfigured ? 'secondary' : 'primary'}
+                icon={
+                  isConfigured
+                    ? <RotateCw size={14} strokeWidth={1.5} />
+                    : <Download size={14} strokeWidth={1.5} />
+                }
                 onClick={handleInstall}
                 disabled={installBusy}
               >
@@ -160,14 +165,18 @@ export const McpPanel: React.FC = () => {
           )}
           <Row
             title="Claude Code"
-            description="Copy the install command for the CLI"
+            description="Run this command in your project to add Monomark"
             action={
               <Button
-                variant="secondary"
-                icon={<Copy size={14} strokeWidth={1.5} />}
+                variant="primary"
+                icon={
+                  copiedCode
+                    ? <CheckCircle size={14} strokeWidth={1.5} color="var(--success)" />
+                    : <Copy size={14} strokeWidth={1.5} />
+                }
                 onClick={handleCopyCode}
               >
-                {copiedCode ? 'Copied ✓' : 'Copy command'}
+                {copiedCode ? 'Copied' : 'Copy command'}
               </Button>
             }
           />
@@ -253,17 +262,13 @@ export const McpPanel: React.FC = () => {
         </Section>
       )}
 
-      {isRunning && (
+      {isRunning && auditLog.length > 0 && (
         <Section title="Recent activity">
-          {auditLog.length === 0 ? (
-            <p className={styles.auditEmpty}>No calls yet.</p>
-          ) : (
-            <div className={styles.auditList}>
-              {auditLog.map(entry => (
-                <AuditRow key={entry.id} entry={entry} />
-              ))}
-            </div>
-          )}
+          <div className={styles.auditList}>
+            {auditLog.map(entry => (
+              <AuditRow key={entry.id} entry={entry} />
+            ))}
+          </div>
           <p className={styles.auditHint}>Showing last 20 calls. Cleared on app restart.</p>
         </Section>
       )}
@@ -307,11 +312,11 @@ const AuditRow: React.FC<{ entry: AuditEntry }> = ({ entry }) => {
 function installDescription(status?: string): string {
   switch (status) {
     case 'configured':
-      return 'Added to Claude Desktop. Restart it if the tools don\'t appear.'
+      return 'Configured. Restart Claude Desktop if tools don\'t appear.'
     case 'outdated':
-      return 'The Claude Desktop config is out of date — update it to reconnect.'
+      return 'Your Claude Desktop config is out of date — update it.'
     default:
-      return 'Not yet added to Claude Desktop.'
+      return 'Add Monomark to your Claude Desktop config'
   }
 }
 

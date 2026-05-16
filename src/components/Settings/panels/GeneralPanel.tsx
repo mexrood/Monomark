@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { FolderOpen } from 'lucide-react'
+import { FolderOpen, RefreshCw } from 'lucide-react'
 import { SettingsPage, Section, Row } from '../SettingsPage'
 import { Button } from '../../ui/Button'
 import { Card } from '../../ui/Card'
@@ -214,7 +214,11 @@ function renderIdleUpdateAction(state: UpdateState, hasUpdater: boolean): React.
   }
   const label = state.status === 'error' ? 'Try again' : 'Check for updates'
   return (
-    <Button variant="secondary" onClick={() => void window.marrow.updater?.check()}>
+    <Button
+      variant="secondary"
+      icon={<RefreshCw size={14} strokeWidth={1.5} />}
+      onClick={() => void window.marrow.updater?.check()}
+    >
       {label}
     </Button>
   )

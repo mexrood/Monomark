@@ -2,6 +2,8 @@
 
 .page {
   max-width: 960px;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
   /* 80px top clears the 70px navBlur zone so the static page heading is not
      touched by the blur fade (Settings content scrolls under the blur). */
@@ -38,11 +40,12 @@
 
 .sectionTitle {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   color: var(--text-tertiary);
-  margin: 0 0 14px;
+  opacity: 0.7;
+  margin: 0 0 16px;
 }
 
 .sectionBody {

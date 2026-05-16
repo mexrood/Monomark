@@ -103,32 +103,43 @@
 .installMsgOk  { background: rgba(76, 175, 125, 0.08); color: #4caf7d; border: 1px solid rgba(76, 175, 125, 0.2); }
 .installMsgErr { background: rgba(224, 82, 82, 0.08); color: #e05252; border: 1px solid rgba(224, 82, 82, 0.2); }
 
-/* ── Advanced details ── */
+/* ── Advanced details (disclosure) ── */
 .advanced {
-  font-size: var(--text-sm);
+  margin-top: 8px;
 }
 .advancedSummary {
-  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
   cursor: pointer;
-  font-size: var(--text-sm);
-  padding: 4px 0;
+  padding: 8px 12px;
+  margin-left: -12px;          /* align text with the rows above */
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text-secondary);
   user-select: none;
   list-style: none;
+  transition: background 100ms ease, color 100ms ease;
 }
 .advancedSummary::-webkit-details-marker { display: none; }
 .advancedSummary::before {
-  content: '▶ ';
-  font-size: 10px;
-  margin-right: 4px;
+  content: '▶';
+  display: inline-block;
+  font-size: 9px;
+  transition: transform 150ms ease;
 }
-details[open] .advancedSummary::before {
-  content: '▼ ';
+.advanced[open] .advancedSummary::before {
+  transform: rotate(90deg);
+}
+.advancedSummary:hover {
+  background: var(--bg-elev-1);
+  color: var(--text-primary);
 }
 .advancedContent {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-top: 12px;
+  padding: 16px 0 8px;
 }
 
 /* ── Status dot ── */
