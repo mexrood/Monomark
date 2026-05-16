@@ -278,6 +278,88 @@
   margin: 12px 0 0;
 }
 
+/* ── Theme switcher ── */
+.themeSection {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.themeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.themeCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 6px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.themeCardActive {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.swatch {
+  width: 80px;
+  height: 56px;
+  border-radius: 6px;
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+  position: relative;
+}
+
+.swatchText {
+  position: absolute;
+  inset: 0;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.themeName {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.themeCardActive .themeName {
+  color: var(--text-primary);
+}
+
+.swatch[data-theme="midnight"] .swatchChrome { background: #131313; }
+.swatch[data-theme="midnight"] .swatchCanvas { background: #171717; }
+.swatch[data-theme="midnight"] .swatchText  { color: rgba(255, 255, 255, 0.95); }
+
+.swatch[data-theme="slate"] .swatchChrome { background: #0e1116; }
+.swatch[data-theme="slate"] .swatchCanvas { background: #14181f; }
+.swatch[data-theme="slate"] .swatchText  { color: rgba(230, 237, 243, 0.95); }
+
+.swatch[data-theme="dim"] .swatchChrome { background: #1c1f24; }
+.swatch[data-theme="dim"] .swatchCanvas { background: #22262d; }
+.swatch[data-theme="dim"] .swatchText  { color: rgba(232, 234, 237, 0.95); }
+
+.swatch[data-theme="paper"] .swatchChrome { background: #fafafa; }
+.swatch[data-theme="paper"] .swatchCanvas { background: #ffffff; }
+.swatch[data-theme="paper"] .swatchText  { color: rgba(0, 0, 0, 0.92); }
+
+.swatch[data-theme="cream"] .swatchChrome { background: #f5f1ea; }
+.swatch[data-theme="cream"] .swatchCanvas { background: #faf7f0; }
+.swatch[data-theme="cream"] .swatchText  { color: rgba(50, 40, 30, 0.92); }
+
 /* ── MCP placeholder ── */
 .mcpPlaceholder {
   display: flex;

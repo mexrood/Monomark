@@ -3,7 +3,7 @@ import { getAutostartEnabled, setAutostartEnabled } from '../autostart'
 import { store } from '../store'
 
 export function registerAppIPC() {
-  ipcMain.handle('app:setTheme', (_event, theme: 'dark' | 'light') => {
+  ipcMain.handle('app:setTheme', (_event, theme: string) => {
     store.set('theme', theme)
   })
   ipcMain.handle('app:getAutostartEnabled', () => getAutostartEnabled())

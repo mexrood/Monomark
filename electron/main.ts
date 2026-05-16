@@ -95,6 +95,19 @@ app.on('open-file', (event, filePath) => {
 
 // ── Window creation ─────────────────────────────────────────────────────────
 
+// Per-theme --bg-chrome color, used as the window backgroundColor so there is
+// no flash-of-wrong-color before the renderer paints. Legacy dark/light values
+// are kept so users upgrading from the old binary theme setting still match.
+const THEME_BG: Record<string, string> = {
+  midnight: '#131313',
+  slate: '#0e1116',
+  dim: '#1c1f24',
+  paper: '#fafafa',
+  cream: '#f5f1ea',
+  dark: '#131313',
+  light: '#fafafa',
+}
+
 function createWindow() {
   const winState = windowStateKeeper({
     defaultWidth: 1280,
@@ -115,7 +128,7 @@ function createWindow() {
     // Windows 11 DWM rounds frameless window corners natively.
     // CSS border-radius + overflow:hidden handles older systems.
     // Match saved theme to avoid flash-of-wrong-color on startup
-    backgroundColor: (store.get('theme') as string | undefined) === 'light' ? '#F0F0F0' : '#131313',
+    backgroundColor: THEME_BG[(store.get('theme') as string | undefined) ?? 'midnight'] ?? '#131313',
     titleBarStyle: 'hidden',
     webPreferences: {
       preload: join(__dirname, 'preload.js'),

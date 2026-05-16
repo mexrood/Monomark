@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { FileText, X, Sun, Moon } from 'lucide-react'
+import { FileText, X } from 'lucide-react'
 import { ExternalView } from './components/Document/ExternalView'
 import { useUIStore } from './store/useUIStore'
 import styles from './PreviewApp.module.css'
@@ -23,7 +23,11 @@ export const PreviewApp: React.FC = () => {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const theme = useUIStore(s => s.theme)
-  const toggleTheme = useUIStore(s => s.toggleTheme)
+
+  // The preview window inherits whatever theme the main app last saved.
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+  }, [theme])
 
   // Receive file data from the main process
   useEffect(() => {
@@ -96,17 +100,6 @@ export const PreviewApp: React.FC = () => {
           <span className={styles.fileName}>{fileName || 'Preview'}</span>
         </div>
         <div className={styles.headerRight}>
-          <button
-            className={styles.iconBtn}
-            onClick={toggleTheme}
-            title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
-            tabIndex={-1}
-          >
-            {theme === 'dark'
-              ? <Sun size={14} strokeWidth={1.5} />
-              : <Moon size={14} strokeWidth={1.5} />
-            }
-          </button>
           <div className={styles.winControls}>
             <button
               className={`${styles.winBtn} ${styles.winClose}`}

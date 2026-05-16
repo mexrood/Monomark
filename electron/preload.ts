@@ -13,7 +13,7 @@ contextBridge.exposeInMainWorld('marrow', {
     setAutostartEnabled: (enabled: boolean): Promise<void> => ipcRenderer.invoke('app:setAutostartEnabled', enabled),
     quit: (): Promise<void> => ipcRenderer.invoke('app:quit'),
     showWindow: (): Promise<void> => ipcRenderer.invoke('app:showWindow'),
-    setTheme: (theme: 'dark' | 'light'): Promise<void> => ipcRenderer.invoke('app:setTheme', theme),
+    setTheme: (theme: string): Promise<void> => ipcRenderer.invoke('app:setTheme', theme),
   },
   fileOpen: {
     onOpenFile: (cb: (path: string) => void) =>

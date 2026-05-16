@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { PanelLeft, Menu, Sun, Moon, ArrowLeft, Search } from 'lucide-react'
+import { PanelLeft, Menu, ArrowLeft, Search } from 'lucide-react'
 import styles from './TitleBar.module.css'
 import { useUIStore } from '../../store/useUIStore'
 import { useVaultStore } from '../../store/useVaultStore'
@@ -52,8 +52,6 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSettings }) => {
   const toggleSidebar = useUIStore(s => s.toggleSidebar)
   const setRenamingPath = useUIStore(s => s.setRenamingPath)
   const focusedFolder = useUIStore(s => s.focusedFolder)
-  const theme = useUIStore(s => s.theme)
-  const toggleTheme = useUIStore(s => s.toggleTheme)
   const appMode = useUIStore(s => s.appMode)
   const settingsTab = useUIStore(s => s.settingsTab)
   const closeSettings = useUIStore(s => s.closeSettings)
@@ -248,15 +246,6 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSettings }) => {
             Save to Vault
           </button>
         )}
-
-        <button
-          className={styles.titleButton}
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
-          tabIndex={-1}
-        >
-          {theme === 'dark' ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
-        </button>
 
         <div className={styles.windowControls}>
           <button className={`${styles.winButton} ${styles.minimize}`} onClick={handleMinimize} title="Minimize">

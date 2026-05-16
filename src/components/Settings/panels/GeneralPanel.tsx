@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react'
-import { Moon, Sun, FolderOpen } from 'lucide-react'
+import { FolderOpen } from 'lucide-react'
 import { Row } from '../SettingsDialog'
 import styles from '../SettingsDialog.module.css'
 import { useUIStore } from '../../../store/useUIStore'
+import type { Theme } from '../../../store/useUIStore'
 import { useVaultStore } from '../../../store/useVaultStore'
 import { useAppStore } from '../../../store/useAppStore'
 import type { UpdateState } from '../../../types/window'
 
+const THEME_OPTIONS: { id: Theme; name: string }[] = [
+  { id: 'midnight', name: 'Midnight' },
+  { id: 'slate', name: 'Slate' },
+  { id: 'dim', name: 'Dim' },
+  { id: 'paper', name: 'Paper' },
+  { id: 'cream', name: 'Cream' },
+]
+
 export const GeneralPanel: React.FC = () => {
   const theme = useUIStore(s => s.theme)
-  const toggleTheme = useUIStore(s => s.toggleTheme)
+  const setTheme = useUIStore(s => s.setTheme)
   const closeSettings = useUIStore(s => s.closeSettings)
   const version = useAppStore(s => s.version)
   const [updateState, setUpdateState] = useState<UpdateState>({ status: 'idle' })
@@ -33,14 +42,29 @@ export const GeneralPanel: React.FC = () => {
 
   return (
     <>
-      <Row label="Theme" sub="Switch between light and dark appearance">
-        <button className={styles.actionBtn} onClick={toggleTheme} tabIndex={-1}>
-          {theme === 'dark'
-            ? <><Moon size={13} strokeWidth={1.5} /><span>Dark</span></>
-            : <><Sun size={13} strokeWidth={1.5} /><span>Light</span></>
-          }
-        </button>
-      </Row>
+      <div className={styles.themeSection}>
+        <div className={styles.rowMeta}>
+          <span className={styles.rowLabel}>Theme</span>
+          <span className={styles.rowSub}>Choose how Monomark looks</span>
+        </div>
+        <div className={styles.themeGrid}>
+          {THEME_OPTIONS.map(t => (
+            <button
+              key={t.id}
+              className={`${styles.themeCard} ${theme === t.id ? styles.themeCardActive : ''}`}
+              onClick={() => setTheme(t.id)}
+              tabIndex={-1}
+            >
+              <div className={styles.swatch} data-theme={t.id}>
+                <div className={styles.swatchChrome} />
+                <div className={styles.swatchCanvas} />
+                <div className={styles.swatchText}>Aa</div>
+              </div>
+              <span className={styles.themeName}>{t.name}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       <Row label="Vault folder" sub="The directory where your notes are stored">
         <button className={styles.actionBtn} onClick={handleChangeVault} tabIndex={-1}>
           <FolderOpen size={13} strokeWidth={1.5} />

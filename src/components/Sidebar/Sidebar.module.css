@@ -22,7 +22,7 @@
   flex-direction: column;
   padding: 8px 8px 8px;
   gap: 0;
-  background: var(--bg-app);
+  background: var(--bg-chrome);
   pointer-events: auto;
 }
 

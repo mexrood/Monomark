@@ -13,7 +13,7 @@ interface MarrowAppAPI {
   setAutostartEnabled(enabled: boolean): Promise<void>
   quit(): Promise<void>
   showWindow(): Promise<void>
-  setTheme(theme: 'dark' | 'light'): Promise<void>
+  setTheme(theme: string): Promise<void>
 }
 
 interface MarrowVaultAPI {

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
-type Theme = 'dark' | 'light'
+export type Theme = 'midnight' | 'slate' | 'dim' | 'paper' | 'cream'
+const THEMES: Theme[] = ['midnight', 'slate', 'dim', 'paper', 'cream']
 export type AppMode = 'document' | 'settings'
 export type SettingsTab = 'general' | 'launch' | 'mcp'
 
@@ -16,7 +17,7 @@ interface UIStore {
   searchPaletteOpen: boolean
 
   toggleSidebar(): void
-  toggleTheme(): void
+  setTheme(t: Theme): void
   setRenamingPath(path: string | null): void
   setFocusedFolder(path: string | null): void
   openSettings(tab?: SettingsTab): void
@@ -26,7 +27,15 @@ interface UIStore {
   closeSearchPalette(): void
 }
 
-const savedTheme = (localStorage.getItem('monomark-theme') as Theme | null) ?? 'dark'
+function loadTheme(): Theme {
+  const raw = localStorage.getItem('monomark-theme')
+  // Migrate the old binary dark/light setting onto the new named themes.
+  if (raw === 'dark') return 'midnight'
+  if (raw === 'light') return 'paper'
+  return THEMES.includes(raw as Theme) ? (raw as Theme) : 'midnight'
+}
+
+const savedTheme = loadTheme()
 document.documentElement.setAttribute('data-theme', savedTheme)
 
 export const useUIStore = create<UIStore>((set, get) => ({
@@ -42,14 +51,13 @@ export const useUIStore = create<UIStore>((set, get) => ({
     set(s => ({ sidebarOpen: !s.sidebarOpen }))
   },
 
-  toggleTheme() {
-    const next = get().theme === 'dark' ? 'light' : 'dark'
-    localStorage.setItem('monomark-theme', next)
-    document.documentElement.setAttribute('data-theme', next)
-    set({ theme: next })
+  setTheme(t) {
+    localStorage.setItem('monomark-theme', t)
+    document.documentElement.setAttribute('data-theme', t)
+    set({ theme: t })
     // Persist to electron-store so main.ts can read it at next launch
     // and set the correct backgroundColor (avoids flash-of-wrong-color)
-    window.marrow.app.setTheme(next).catch(() => {})
+    window.marrow.app.setTheme(t).catch(() => {})
   },
 
   setRenamingPath(path) {

@@ -28,7 +28,7 @@ html, body {
   margin: 0;
   padding: 0;
   /* Window is no longer transparent — background clips to border-radius below */
-  background: var(--bg-app);
+  background: var(--bg-chrome);
   border-radius: 12px;
 }
 
@@ -44,7 +44,7 @@ body {
   font-family: var(--font-ui);
   font-size: var(--text-base);
   color: var(--text-primary);
-  background: var(--bg-app);
+  background: var(--bg-chrome);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   border-radius: 16px;
@@ -139,50 +139,16 @@ h1, h2, h3, h4, h5, h6,
 }
 
 /* ============================================
-   Dark Theme (default)
+   Theme-independent tokens + legacy aliases
    ============================================ */
-:root,
-[data-theme="dark"] {
-  --bg-app: #131313;
-  --bg-base: #181818;
-  --bg-surface: #1C1C1C;
-  --bg-elevated: #232323;
-  --bg-overlay: #2A2A2A;
-  --bg-input: #1F1F1F;
-
-  --bg-elev-1: var(--bg-elevated);
-  --bg-elev-2: var(--bg-overlay);
-  --bg-elev-3: #313131;
-
-  --syntax-keyword: #a5b4fc;
-  --syntax-string: #86efac;
-  --syntax-number: #fdba74;
-  --syntax-comment: #9ca3af;
-  --code-inline: #ff7b72;
-
-  --border-subtle: rgba(255,255,255,0.04);
-  --border-default: rgba(255,255,255,0.08);
-  --border-strong: rgba(255,255,255,0.14);
-  --border-focus: rgba(255,255,255,0.4);
-
-  --text-primary: #F2F2F2;
-  --text-secondary: #888888;
-  --text-tertiary: #6E6E6E;
-  --text-disabled: #333333;
-  --text-inverse: #131313;
-  /* Body prose — softer than primary so headings stand out */
-  --text-body: rgba(255, 255, 255, 0.65);
-
-  --accent: #FFFFFF;
-  --accent-hover: rgba(255,255,255,0.8);
-  --accent-muted: rgba(255,255,255,0.1);
-  --accent-glow: rgba(255,255,255,0.15);
-
+:root {
+  /* Semantic status colors — shared by every theme */
   --success: #34C759;
   --warning: #FF9F0A;
   --danger: #FF453A;
   --info: #64D2FF;
 
+  /* Stickers — shared by every theme */
   --sticker-yellow: #2D2600;
   --sticker-yellow-border: #5C4D00;
   --sticker-yellow-text: #FFD60A;
@@ -198,49 +164,143 @@ h1, h2, h3, h4, h5, h6,
   --sticker-neutral: #1A1A1A;
   --sticker-neutral-border: #2A2A2A;
   --sticker-neutral-text: #EBEBEB;
+
+  /* Legacy token aliases — map old palette names onto the new
+     chrome/canvas/elevation tokens. var() resolves lazily, so these
+     always pick up whichever theme is currently active. */
+  --bg-app: var(--bg-chrome);
+  --bg-base: var(--bg-canvas);
+  --bg-surface: var(--bg-elev-2);
+  --bg-elevated: var(--bg-elev-1);
+  --bg-overlay: var(--bg-elev-2);
+  --bg-input: var(--bg-elev-1);
+  --border-default: var(--border-subtle);
+  --border-focus: var(--border-strong);
+  --text-disabled: var(--text-tertiary);
+  --text-inverse: var(--bg-canvas);
+  --accent-hover: var(--accent);
+  --accent-muted: var(--bg-elev-3);
+  --accent-glow: var(--bg-elev-3);
 }
 
 /* ============================================
-   Light Theme
+   Themes — 3 dark, 2 light
+   --bg-chrome  sidebar / titlebar region
+   --bg-canvas  document area / editor
    ============================================ */
-[data-theme="light"] {
+
+/* Midnight — pure black (default) */
+:root,
+[data-theme="midnight"] {
+  --bg-chrome: #131313;
+  --bg-canvas: #171717;
+  --bg-elev-1: #1f1f1f;
+  --bg-elev-2: #252525;
+  --bg-elev-3: #2d2d2d;
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-tertiary: rgba(255, 255, 255, 0.45);
+  --text-body: rgba(255, 255, 255, 0.65);
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.18);
+  --accent: #ffffff;
+  --code-inline: #ff7b72;
+  --syntax-keyword: #a5b4fc;
+  --syntax-string: #86efac;
+  --syntax-number: #fdba74;
+  --syntax-comment: #9ca3af;
+}
+
+/* Slate — warm grey with subtle blue tint */
+[data-theme="slate"] {
+  --bg-chrome: #0e1116;
+  --bg-canvas: #14181f;
+  --bg-elev-1: #1c2027;
+  --bg-elev-2: #232830;
+  --bg-elev-3: #2a3038;
+  --text-primary: rgba(230, 237, 243, 0.95);
+  --text-secondary: rgba(230, 237, 243, 0.7);
+  --text-tertiary: rgba(230, 237, 243, 0.45);
+  --text-body: rgba(230, 237, 243, 0.65);
+  --border-subtle: rgba(230, 237, 243, 0.08);
+  --border-strong: rgba(230, 237, 243, 0.18);
+  --accent: #7aa2f7;
+  --code-inline: #f7768e;
+  --syntax-keyword: #bb9af7;
+  --syntax-string: #9ece6a;
+  --syntax-number: #ff9e64;
+  --syntax-comment: #565f89;
+}
+
+/* Dim — soft grey, easier on the eyes at night */
+[data-theme="dim"] {
+  --bg-chrome: #1c1f24;
+  --bg-canvas: #22262d;
+  --bg-elev-1: #2a2e36;
+  --bg-elev-2: #32363f;
+  --bg-elev-3: #3a3f48;
+  --text-primary: rgba(232, 234, 237, 0.95);
+  --text-secondary: rgba(232, 234, 237, 0.7);
+  --text-tertiary: rgba(232, 234, 237, 0.45);
+  --text-body: rgba(232, 234, 237, 0.65);
+  --border-subtle: rgba(232, 234, 237, 0.08);
+  --border-strong: rgba(232, 234, 237, 0.18);
+  --accent: #8ab4f8;
+  --code-inline: #f28b82;
+  --syntax-keyword: #c58af9;
+  --syntax-string: #95d195;
+  --syntax-number: #fbbc04;
+  --syntax-comment: #9aa0a6;
+}
+
+/* Paper — pure white, clean */
+[data-theme="paper"] {
   --shadow-popover:
     0 4px 16px rgba(0,0,0,0.08),
     0 0 0 1px rgba(0,0,0,0.04);
 
-  --bg-app: #F0F0F0;
-  --bg-base: #E8E8E8;
-  --bg-surface: #FFFFFF;
-  --bg-elevated: #FAFAFA;
-  --bg-overlay: #F0F0F0;
-  --bg-input: #F5F5F5;
-
-  --bg-elev-1: var(--bg-elevated);
-  --bg-elev-2: var(--bg-overlay);
-  --bg-elev-3: #E0E0E0;
-
-  --syntax-keyword: #5e6ad2;
-  --syntax-string: #2d8a4e;
-  --syntax-number: #c2410c;
-  --syntax-comment: #6b7280;
-  --code-inline: #eb5757;
-
-  --border-subtle: rgba(0,0,0,0.04);
-  --border-default: rgba(0,0,0,0.08);
-  --border-strong: rgba(0,0,0,0.14);
-  --border-focus: rgba(0,0,0,0.3);
-
-  --text-primary: #111111;
-  --text-secondary: #666666;
-  --text-tertiary: #888888;
-  --text-disabled: #CCCCCC;
-  --text-inverse: #FFFFFF;
+  --bg-chrome: #fafafa;
+  --bg-canvas: #ffffff;
+  --bg-elev-1: #f4f4f4;
+  --bg-elev-2: #ededed;
+  --bg-elev-3: #e6e6e6;
+  --text-primary: rgba(0, 0, 0, 0.92);
+  --text-secondary: rgba(0, 0, 0, 0.65);
+  --text-tertiary: rgba(0, 0, 0, 0.42);
   --text-body: rgba(0, 0, 0, 0.7);
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --accent: #000000;
+  --code-inline: #d73a49;
+  --syntax-keyword: #6f42c1;
+  --syntax-string: #032f62;
+  --syntax-number: #b08800;
+  --syntax-comment: #6a737d;
+}
 
-  --accent: #111111;
-  --accent-hover: rgba(0,0,0,0.7);
-  --accent-muted: rgba(0,0,0,0.08);
-  --accent-glow: rgba(0,0,0,0.12);
+/* Cream — warm off-white, paper-like feel */
+[data-theme="cream"] {
+  --shadow-popover:
+    0 4px 16px rgba(0,0,0,0.08),
+    0 0 0 1px rgba(0,0,0,0.04);
+
+  --bg-chrome: #f5f1ea;
+  --bg-canvas: #faf7f0;
+  --bg-elev-1: #efeae0;
+  --bg-elev-2: #e8e3d6;
+  --bg-elev-3: #ddd6c7;
+  --text-primary: rgba(50, 40, 30, 0.92);
+  --text-secondary: rgba(50, 40, 30, 0.65);
+  --text-tertiary: rgba(50, 40, 30, 0.42);
+  --text-body: rgba(50, 40, 30, 0.7);
+  --border-subtle: rgba(50, 40, 30, 0.08);
+  --border-strong: rgba(50, 40, 30, 0.18);
+  --accent: #5e4f3c;
+  --code-inline: #a73838;
+  --syntax-keyword: #7e3f9c;
+  --syntax-string: #1d5e2f;
+  --syntax-number: #a05a00;
+  --syntax-comment: #8a7f6b;
 }
 
 /* ============================================
