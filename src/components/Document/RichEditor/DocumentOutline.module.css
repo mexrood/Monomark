@@ -122,6 +122,9 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* Cap long headings to one truncated line — full text shows on hover
+   * via the native title tooltip, keeping the panel a stable width. */
+  max-width: 280px;
   transition: background 100ms ease, color 100ms ease;
   cursor: pointer;
 }
