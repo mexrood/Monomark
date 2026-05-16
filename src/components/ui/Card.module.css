@@ -1,0 +1,11 @@
+.card {
+  border-radius: 10px;
+  padding: 20px 24px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border-subtle);
+}
+
+.accent {
+  background: var(--bg-elev-2);
+  border-color: var(--border-strong);
+}

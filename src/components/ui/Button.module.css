@@ -1,0 +1,59 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 100ms ease, opacity 100ms ease,
+    color 100ms ease, border-color 100ms ease;
+  white-space: nowrap;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+}
+
+/* ── Sizes ── */
+.sm { padding: 6px 10px; font-size: 13px; }
+.md { padding: 8px 14px; font-size: 14px; }
+
+/* ── Primary — solid, inverted, attention-grabbing ── */
+.primary {
+  background: var(--text-primary);
+  color: var(--bg-canvas);
+  border-color: var(--text-primary);
+}
+.primary:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+/* ── Secondary — subtle outline, neutral ── */
+.secondary {
+  background: var(--bg-elev-1);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--bg-elev-2);
+  border-color: var(--border-strong);
+}
+
+/* ── Danger — destructive actions ── */
+.danger {
+  background: transparent;
+  color: #ff5a5a;
+  border-color: rgba(255, 90, 90, 0.3);
+}
+.danger:hover:not(:disabled) {
+  background: rgba(255, 90, 90, 0.1);
+  border-color: rgba(255, 90, 90, 0.5);
+}

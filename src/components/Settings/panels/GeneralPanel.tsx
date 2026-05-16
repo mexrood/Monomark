@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { FolderOpen } from 'lucide-react'
-import { Row } from '../SettingsDialog'
-import styles from '../SettingsDialog.module.css'
+import { SettingsPage, Section, Row } from '../SettingsPage'
+import { Button } from '../../ui/Button'
+import { Card } from '../../ui/Card'
+import styles from '../SettingsPage.module.css'
+import grid from '../SettingsDialog.module.css'
 import { useUIStore } from '../../../store/useUIStore'
 import type { Theme } from '../../../store/useUIStore'
 import { useVaultStore } from '../../../store/useVaultStore'
@@ -15,6 +18,11 @@ const THEME_OPTIONS: { id: Theme; name: string }[] = [
   { id: 'paper', name: 'Paper' },
   { id: 'cream', name: 'Cream' },
 ]
+
+// Update states that take over the top of the page as a prominent card.
+const PROMINENT = new Set<UpdateState['status']>([
+  'available', 'downloading', 'downloaded', 'installing',
+])
 
 export const GeneralPanel: React.FC = () => {
   const theme = useUIStore(s => s.theme)
@@ -40,135 +48,179 @@ export const GeneralPanel: React.FC = () => {
     }
   }
 
+  const isProminent = PROMINENT.has(updateState.status)
+
   return (
-    <>
-      <div className={styles.themeSection}>
-        <div className={styles.rowMeta}>
-          <span className={styles.rowLabel}>Theme</span>
-          <span className={styles.rowSub}>Choose how Monomark looks</span>
+    <SettingsPage title="General" description="Manage your preferences">
+
+      {isProminent && (
+        <div className={styles.updateCardWrap}>
+          <UpdateCard state={updateState} />
         </div>
+      )}
+
+      <Section title="Appearance">
+        <Row title="Theme" description="Choose how Monomark looks" />
         <div className={styles.themeGrid}>
           {THEME_OPTIONS.map(t => (
             <button
               key={t.id}
-              className={`${styles.themeCard} ${theme === t.id ? styles.themeCardActive : ''}`}
+              className={[grid.themeCard, theme === t.id ? grid.themeCardActive : '']
+                .filter(Boolean).join(' ')}
               onClick={() => setTheme(t.id)}
               tabIndex={-1}
             >
-              <div className={styles.swatch} data-theme={t.id}>
-                <div className={styles.swatchChrome} />
-                <div className={styles.swatchCanvas} />
-                <div className={styles.swatchText}>Aa</div>
+              <div className={grid.swatch} data-theme={t.id}>
+                <div className={grid.swatchChrome} />
+                <div className={grid.swatchCanvas} />
+                <div className={grid.swatchText}>Aa</div>
               </div>
-              <span className={styles.themeName}>{t.name}</span>
+              <span className={grid.themeName}>{t.name}</span>
             </button>
           ))}
         </div>
-      </div>
-      <Row label="Vault folder" sub="The directory where your notes are stored">
-        <button className={styles.actionBtn} onClick={handleChangeVault} tabIndex={-1}>
-          <FolderOpen size={13} strokeWidth={1.5} />
-          <span>Change…</span>
-        </button>
-      </Row>
+      </Section>
 
-      <UpdatesRow state={updateState} hasUpdater={!!updater} />
-      <Row label="Version">
-        <span className={styles.value}>{version || '—'}</span>
-      </Row>
-      <Row label="License">
-        <span className={styles.value}>MIT</span>
-      </Row>
-    </>
+      <Section title="Vault">
+        <Row
+          title="Vault folder"
+          description="The directory where your notes are stored"
+          action={
+            <Button
+              variant="secondary"
+              icon={<FolderOpen size={14} strokeWidth={1.5} />}
+              onClick={handleChangeVault}
+            >
+              Change…
+            </Button>
+          }
+        />
+      </Section>
+
+      <Section title="About">
+        {!isProminent && (
+          <Row
+            title="Updates"
+            description={idleUpdateText(updateState, !!updater)}
+            action={renderIdleUpdateAction(updateState, !!updater)}
+          />
+        )}
+        <Row title="Version" action={<span className={styles.value}>{version || '—'}</span>} />
+        <Row title="License" action={<span className={styles.value}>MIT</span>} />
+      </Section>
+    </SettingsPage>
   )
 }
 
-const UpdatesRow: React.FC<{ state: UpdateState; hasUpdater: boolean }> = ({ state, hasUpdater }) => {
-  const sub = updateSubtext(state)
-  const button = renderUpdateButton(state, hasUpdater)
-  const showProgress = state.status === 'downloading'
-  const showReleaseNotes = state.status === 'available' && !!state.releaseNotes
+// ── Updates prominent card ────────────────────────────────────────────────────
 
-  return (
-    <Row label="Updates" sub={sub}>
-      <div className={styles.updatesControl}>
-        {button}
-        {showProgress && (
-          <div className={styles.progress}>
-            <div className={styles.progressBar} style={{ width: `${state.percent}%` }} />
-          </div>
-        )}
-        {showReleaseNotes && (
-          <details className={styles.releaseNotes}>
-            <summary>What's changed</summary>
-            <div className={styles.releaseNotesBody}>{state.releaseNotes}</div>
-          </details>
-        )}
+const UpdateCard: React.FC<{ state: UpdateState }> = ({ state }) => (
+  <Card variant="accent">
+    <div className={styles.updateHeader}>
+      <div className={styles.updateBadge}>UPDATE</div>
+      <h3 className={styles.updateTitle}>{updateTitle(state)}</h3>
+      <p className={styles.updateSubtitle}>{updateSubtitle(state)}</p>
+    </div>
+
+    {state.status === 'downloading' && (
+      <div className={styles.progress}>
+        <div className={styles.progressBar} style={{ width: `${state.percent}%` }} />
       </div>
-    </Row>
-  )
-}
+    )}
 
-function renderUpdateButton(state: UpdateState, hasUpdater: boolean): React.ReactNode {
-  if (!hasUpdater) {
-    return <span className={styles.value}>unavailable</span>
-  }
+    {state.status === 'available' && state.releaseNotes && (
+      <details className={styles.releaseNotes}>
+        <summary>What's changed</summary>
+        <div className={styles.releaseNotesBody}>{state.releaseNotes}</div>
+      </details>
+    )}
+
+    <div className={styles.updateActions}>{renderUpdateAction(state)}</div>
+  </Card>
+)
+
+function updateTitle(state: UpdateState): string {
   switch (state.status) {
-    case 'checking':
-      return <button className={styles.actionBtn} disabled>Checking…</button>
-    case 'available':
-      return (
-        <button className={styles.actionBtn} onClick={() => void window.marrow.updater.download()}>
-          Download v{state.version}
-        </button>
-      )
-    case 'downloading':
-      return <button className={styles.actionBtn} disabled>{state.percent}%</button>
-    case 'downloaded':
-      return (
-        <button className={styles.actionBtn} onClick={() => void window.marrow.updater.install()}>
-          Install and restart
-        </button>
-      )
-    case 'installing':
-      return <button className={styles.actionBtn} disabled>Installing…</button>
-    case 'error':
-      return (
-        <button className={styles.actionBtn} onClick={() => void window.marrow.updater.check()}>
-          Try again
-        </button>
-      )
-    case 'up-to-date':
-    case 'idle':
-    default:
-      return (
-        <button className={styles.actionBtn} onClick={() => void window.marrow.updater.check()}>
-          Check for updates
-        </button>
-      )
+    case 'available':   return 'Update available'
+    case 'downloading': return 'Downloading update…'
+    case 'downloaded':  return 'Update ready to install'
+    case 'installing':  return 'Installing update…'
+    default:            return 'Updates'
   }
 }
 
-function updateSubtext(state: UpdateState): string | undefined {
+function updateSubtitle(state: UpdateState): string {
   switch (state.status) {
-    case 'idle':
-      return state.lastChecked ? `Last checked ${formatRelative(state.lastChecked)}` : undefined
-    case 'checking':
-      return 'Checking for updates…'
-    case 'up-to-date':
-      return `You are on the latest version (v${state.version}).`
     case 'available':
-      return `New version v${state.version} available.`
+      return `Version ${state.version} is ready to download.`
     case 'downloading':
       return `${formatBytes(state.transferred)} / ${formatBytes(state.total)} · ${formatBytes(state.bytesPerSecond)}/s`
     case 'downloaded':
-      return 'Ready to install. App will restart on update.'
+      return 'Monomark will restart to finish the update.'
     case 'installing':
-      return 'Installing… app will restart.'
-    case 'error':
-      return state.message
+      return 'Monomark is restarting to apply the update.'
+    default:
+      return ''
   }
 }
+
+function renderUpdateAction(state: UpdateState): React.ReactNode {
+  switch (state.status) {
+    case 'available':
+      return (
+        <Button variant="primary" onClick={() => void window.marrow.updater?.download()}>
+          Download v{state.version}
+        </Button>
+      )
+    case 'downloading':
+      return <Button variant="primary" disabled>{state.percent}%</Button>
+    case 'downloaded':
+      return (
+        <Button variant="primary" onClick={() => void window.marrow.updater?.install()}>
+          Install and restart
+        </Button>
+      )
+    case 'installing':
+      return <Button variant="primary" disabled>Installing…</Button>
+    default:
+      return null
+  }
+}
+
+// ── Idle updates row ──────────────────────────────────────────────────────────
+
+function idleUpdateText(state: UpdateState, hasUpdater: boolean): string {
+  if (!hasUpdater) return 'Updates are unavailable in this build.'
+  switch (state.status) {
+    case 'idle':
+      return state.lastChecked
+        ? `Last checked ${formatRelative(state.lastChecked)}.`
+        : 'Check for the latest version of Monomark.'
+    case 'checking':
+      return 'Checking for updates…'
+    case 'up-to-date':
+      return `You're on the latest version (v${state.version}).`
+    case 'error':
+      return state.message
+    default:
+      return 'Check for the latest version of Monomark.'
+  }
+}
+
+function renderIdleUpdateAction(state: UpdateState, hasUpdater: boolean): React.ReactNode {
+  if (!hasUpdater) return null
+  if (state.status === 'checking') {
+    return <Button variant="secondary" disabled>Checking…</Button>
+  }
+  const label = state.status === 'error' ? 'Try again' : 'Check for updates'
+  return (
+    <Button variant="secondary" onClick={() => void window.marrow.updater?.check()}>
+      {label}
+    </Button>
+  )
+}
+
+// ── Formatters ────────────────────────────────────────────────────────────────
 
 function formatBytes(n: number): string {
   if (!n || n < 0) return '0 B'

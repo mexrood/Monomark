@@ -1,7 +1,8 @@
 import React from 'react'
 import { Power } from 'lucide-react'
-import { Row, Toggle } from '../SettingsDialog'
-import styles from '../SettingsDialog.module.css'
+import { SettingsPage, Section, Row } from '../SettingsPage'
+import { Button } from '../../ui/Button'
+import { Switch } from '../../ui/Switch'
 import { useAppStore } from '../../../store/useAppStore'
 
 export const LaunchPanel: React.FC = () => {
@@ -12,20 +13,30 @@ export const LaunchPanel: React.FC = () => {
   }
 
   return (
-    <>
-      <Row label="Launch at login" sub="Start Monomark automatically when you log in">
-        <Toggle checked={autostartEnabled} onChange={toggleAutostart} />
-      </Row>
-      <Row label="Quit app" sub="Fully exit Monomark (not just hide to tray)">
-        <button className={`${styles.actionBtn} ${styles.danger}`} onClick={handleQuit} tabIndex={-1}>
-          <Power size={13} strokeWidth={1.5} />
-          <span>Quit Monomark</span>
-        </button>
-      </Row>
-      <p className={styles.hint}>
-        Closing the window hides Monomark to the system tray.
-        The MCP server keeps running so Claude can always reach your vault.
-      </p>
-    </>
+    <SettingsPage title="Launch" description="Startup and shutdown behavior">
+      <Section title="Startup">
+        <Row
+          title="Launch at login"
+          description="Start Monomark automatically when you log in"
+          action={<Switch checked={autostartEnabled} onChange={() => toggleAutostart()} />}
+        />
+      </Section>
+
+      <Section title="App">
+        <Row
+          title="Quit Monomark"
+          description="Fully exit Monomark (not just hide to tray). Closing the window hides Monomark to the system tray — the MCP server keeps running so Claude can always reach your vault."
+          action={
+            <Button
+              variant="danger"
+              icon={<Power size={14} strokeWidth={1.5} />}
+              onClick={handleQuit}
+            >
+              Quit Monomark
+            </Button>
+          }
+        />
+      </Section>
+    </SettingsPage>
   )
 }

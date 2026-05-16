@@ -1,0 +1,183 @@
+/* ── Shared Settings page layout ──────────────────────────────────────────── */
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  /* 80px top clears the 70px navBlur zone so the static page heading is not
+     touched by the blur fade (Settings content scrolls under the blur). */
+  padding: 80px 48px 120px;
+}
+
+.pageHeader {
+  margin-bottom: 40px;
+}
+
+.pageTitle {
+  font-size: 30px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin: 0 0 6px;
+}
+
+.pageDescription {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ── Section ───────────────────────────────────────────────────────────────── */
+
+.section {
+  margin-bottom: 40px;
+}
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin: 0 0 14px;
+}
+
+.sectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Row ───────────────────────────────────────────────────────────────────── */
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.row:last-child {
+  border-bottom: none;
+}
+
+.rowText {
+  flex: 1;
+  min-width: 0;
+}
+
+.rowTitle {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.rowDescription {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.rowAction {
+  flex-shrink: 0;
+}
+
+.value {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Theme grid (Appearance section) ──────────────────────────────────────── */
+
+.themeGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 16px 0 4px;
+}
+
+/* ── Updates prominent card ───────────────────────────────────────────────── */
+
+.updateCardWrap {
+  margin-bottom: 40px;
+}
+
+.updateHeader {
+  margin-bottom: 16px;
+}
+
+.updateBadge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.updateTitle {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 4px;
+  color: var(--text-primary);
+}
+
+.updateSubtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.progress {
+  height: 4px;
+  background: var(--bg-elev-1);
+  border-radius: 2px;
+  margin: 16px 0;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--accent);
+  transition: width 200ms ease-out;
+}
+
+.releaseNotes {
+  margin: 12px 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.releaseNotes summary {
+  cursor: pointer;
+  user-select: none;
+  color: var(--text-tertiary);
+}
+.releaseNotes summary:hover {
+  color: var(--text-secondary);
+}
+.releaseNotesBody {
+  margin-top: 8px;
+  padding: 10px 12px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  line-height: 1.5;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.updateActions {
+  margin-top: 16px;
+  display: flex;
+  gap: 8px;
+}

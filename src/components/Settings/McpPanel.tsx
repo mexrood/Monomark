@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { Copy, RefreshCw, Eye, EyeOff, CheckCircle, XCircle, Loader } from 'lucide-react'
 import styles from './McpPanel.module.css'
+import { SettingsPage, Section, Row } from './SettingsPage'
+import { Button } from '../ui/Button'
+import { Switch } from '../ui/Switch'
 import { useAppStore } from '../../store/useAppStore'
 import { useDialogStore } from '../../store/useDialogStore'
-import { Switch } from '../ui/Switch'
 
 export const McpPanel: React.FC = () => {
   const mcpStatus = useAppStore(s => s.mcpStatus)
@@ -103,94 +105,79 @@ export const McpPanel: React.FC = () => {
       : `${mcpStatus.token.slice(0, 6)}…${mcpStatus.token.slice(-4)}`
     : null
 
-  const installLabel =
-    installStatus?.status === 'outdated' ? 'Update Claude Desktop config' : 'Install for Claude Desktop'
+  const isConfigured = installStatus?.status === 'configured'
+  const isOutdated = installStatus?.status === 'outdated'
+  const installLabel = isOutdated ? 'Update config' : isConfigured ? 'Reinstall' : 'Install'
+  const isRunning = mcpStatus.running && !!mcpStatus.port && !!mcpStatus.token
 
   return (
-    <div className={styles.root}>
-      {/* ── Enable toggle ── */}
-      <div className={styles.toggleRow}>
-        <div className={styles.toggleLabel}>
-          <StatusDot state={mcpStatus.state} />
-          <span>Enable MCP server for Claude</span>
-        </div>
-        {busy
-          ? <Loader size={14} className={styles.spin} />
-          : <Switch checked={mcpStatus.running} onChange={() => handleToggle()} />
-        }
-      </div>
-
-      {/* Running badge */}
-      {mcpStatus.running && mcpStatus.port && (
-        <div className={styles.runningBadge}>
-          <CheckCircle size={13} />
-          <span>Running on http://127.0.0.1:{mcpStatus.port}</span>
-        </div>
-      )}
-
-      {/* Error state */}
-      {mcpStatus.state === 'error' && mcpStatus.error && (
-        <div className={styles.errorBox}>
-          <XCircle size={14} />
-          <span>{mcpStatus.error}</span>
-        </div>
-      )}
-
-      {/* Disabled description */}
-      {!mcpStatus.running && mcpStatus.state !== 'error' && (
-        <p className={styles.description}>
-          When enabled, Monomark exposes a local server that lets Claude Desktop
-          and Claude Code CLI read and write your vault. Nothing leaves your machine.
-        </p>
-      )}
-
-      {/* ── Action buttons (only when running) ── */}
-      {mcpStatus.running && mcpStatus.port && mcpStatus.token && (
-        <>
-          <div className={styles.divider} />
-
-          {/* Install for Claude Desktop */}
-          <div className={styles.actionGroup}>
-            <button
-              className={`${styles.actionPrimaryBtn} ${installStatus?.status === 'outdated' ? styles.btnWarning : ''}`}
-              onClick={handleInstall}
-              disabled={installBusy}
-            >
-              {installBusy && <Loader size={13} className={styles.spin} />}
-              <span>{installLabel}</span>
-              {installStatus && (
-                <span className={`${styles.badge} ${
-                  installStatus.status === 'configured' ? styles.badgeGreen :
-                  installStatus.status === 'outdated' ? styles.badgeAmber :
-                  styles.badgeNeutral
-                }`}>
-                  {installStatus.status === 'configured' ? 'Configured ✓' :
-                   installStatus.status === 'outdated' ? 'Update available' :
-                   'Not configured'}
-                </span>
-              )}
-            </button>
-
-            {installMsg && (
-              <div className={`${styles.installMsg} ${installMsg.ok ? styles.installMsgOk : styles.installMsgErr}`}>
-                {installMsg.ok ? <CheckCircle size={13} /> : <XCircle size={13} />}
-                <span>{installMsg.text}</span>
-              </div>
-            )}
-
-            <button className={styles.actionSecondaryBtn} onClick={handleCopyCode}>
-              {copiedCode
-                ? <><CheckCircle size={13} /><span>Copied ✓</span></>
-                : <><Copy size={13} /><span>Copy command for Claude Code</span></>
-              }
-            </button>
+    <SettingsPage
+      title="Server (MCP)"
+      description="Local server that lets Claude access your vault"
+    >
+      <Section title="Status">
+        <Row
+          title="Enable MCP server"
+          description={
+            mcpStatus.running && mcpStatus.port
+              ? `Running on http://127.0.0.1:${mcpStatus.port}`
+              : 'The server is off. Claude cannot reach your vault.'
+          }
+          action={
+            busy
+              ? <Loader size={16} className={styles.spin} />
+              : <Switch checked={mcpStatus.running} onChange={() => handleToggle()} />
+          }
+        />
+        {mcpStatus.state === 'error' && mcpStatus.error && (
+          <div className={styles.errorBox}>
+            <XCircle size={14} />
+            <span>{mcpStatus.error}</span>
           </div>
+        )}
+      </Section>
 
-          <div className={styles.divider} />
+      {isRunning && (
+        <Section title="Integrations">
+          <Row
+            title="Claude Desktop"
+            description={installDescription(installStatus?.status)}
+            action={
+              <Button
+                variant={isConfigured ? 'secondary' : 'primary'}
+                onClick={handleInstall}
+                disabled={installBusy}
+              >
+                {installLabel}
+              </Button>
+            }
+          />
+          {installMsg && (
+            <div className={`${styles.installMsg} ${installMsg.ok ? styles.installMsgOk : styles.installMsgErr}`}>
+              {installMsg.ok ? <CheckCircle size={13} /> : <XCircle size={13} />}
+              <span>{installMsg.text}</span>
+            </div>
+          )}
+          <Row
+            title="Claude Code"
+            description="Copy the install command for the CLI"
+            action={
+              <Button
+                variant="secondary"
+                icon={<Copy size={14} strokeWidth={1.5} />}
+                onClick={handleCopyCode}
+              >
+                {copiedCode ? 'Copied ✓' : 'Copy command'}
+              </Button>
+            }
+          />
+        </Section>
+      )}
 
-          {/* ── Advanced / Manual setup ── */}
+      {isRunning && (
+        <Section title="Advanced">
           <details className={styles.advanced}>
-            <summary className={styles.advancedSummary}>Advanced / Manual setup</summary>
+            <summary className={styles.advancedSummary}>Manual setup</summary>
             <div className={styles.advancedContent}>
               <div className={styles.snippetBox}>
                 <div className={styles.snippetHeader}>
@@ -200,7 +187,7 @@ export const McpPanel: React.FC = () => {
                   </span>
                 </div>
                 <pre className={styles.snippet}>
-                  {buildSnippet(mcpStatus.port, maskedToken ?? mcpStatus.token)}
+                  {buildSnippet(mcpStatus.port!, maskedToken ?? mcpStatus.token!)}
                 </pre>
                 <div className={styles.snippetActions}>
                   <button className={styles.actionBtn} onClick={handleCopySnippet} tabIndex={-1}>
@@ -263,26 +250,24 @@ export const McpPanel: React.FC = () => {
               </button>
             </div>
           </details>
-
-          <div className={styles.divider} />
-        </>
+        </Section>
       )}
 
-      {/* ── Audit log ── */}
-      <div className={styles.auditSection}>
-        <div className={styles.auditTitle}>Recent activity</div>
-        {auditLog.length === 0 ? (
-          <p className={styles.auditEmpty}>No calls yet.</p>
-        ) : (
-          <div className={styles.auditList}>
-            {auditLog.map(entry => (
-              <AuditRow key={entry.id} entry={entry} />
-            ))}
-          </div>
-        )}
-        <p className={styles.auditHint}>Showing last 20 calls. Cleared on app restart.</p>
-      </div>
-    </div>
+      {isRunning && (
+        <Section title="Recent activity">
+          {auditLog.length === 0 ? (
+            <p className={styles.auditEmpty}>No calls yet.</p>
+          ) : (
+            <div className={styles.auditList}>
+              {auditLog.map(entry => (
+                <AuditRow key={entry.id} entry={entry} />
+              ))}
+            </div>
+          )}
+          <p className={styles.auditHint}>Showing last 20 calls. Cleared on app restart.</p>
+        </Section>
+      )}
+    </SettingsPage>
   )
 }
 
@@ -319,16 +304,16 @@ const AuditRow: React.FC<{ entry: AuditEntry }> = ({ entry }) => {
   )
 }
 
-const StatusDot: React.FC<{ state: string }> = ({ state }) => (
-  <span
-    className={`${styles.dot} ${
-      state === 'running' ? styles.dotGreen
-      : state === 'error' ? styles.dotRed
-      : state === 'starting' ? styles.dotYellow
-      : styles.dotGray
-    }`}
-  />
-)
+function installDescription(status?: string): string {
+  switch (status) {
+    case 'configured':
+      return 'Added to Claude Desktop. Restart it if the tools don\'t appear.'
+    case 'outdated':
+      return 'The Claude Desktop config is out of date — update it to reconnect.'
+    default:
+      return 'Not yet added to Claude Desktop.'
+  }
+}
 
 function buildSnippet(port: number, token: string | null): string {
   return JSON.stringify(
