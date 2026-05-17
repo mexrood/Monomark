@@ -123,7 +123,7 @@
 .toolbar {
   display: flex;
   flex-direction: column;
-  background: var(--bg-elev-2);
+  background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   box-shadow: var(--shadow-popover);

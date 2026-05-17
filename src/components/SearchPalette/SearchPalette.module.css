@@ -16,7 +16,7 @@
   width: 600px;
   max-width: 92vw;
   max-height: 480px;
-  background: var(--bg-surface);
+  background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   box-shadow: var(--shadow-popover);

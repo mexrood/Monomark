@@ -33,7 +33,7 @@
   bottom: calc(100% + 8px);
   right: 0;
   width: 240px;
-  background: var(--bg-surface);
+  background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   padding: 6px;
