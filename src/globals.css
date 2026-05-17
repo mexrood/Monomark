@@ -194,6 +194,7 @@ h1, h2, h3, h4, h5, h6,
 [data-theme="midnight"] {
   --bg-chrome: #131313;
   --bg-canvas: #171717;
+  --bg-canvas-hover: #1f1f1f;
   --bg-elev-1: #1f1f1f;
   --bg-elev-2: #252525;
   --bg-elev-3: #2d2d2d;
@@ -215,6 +216,7 @@ h1, h2, h3, h4, h5, h6,
 [data-theme="slate"] {
   --bg-chrome: #0e1116;
   --bg-canvas: #14181f;
+  --bg-canvas-hover: #1c2027;
   --bg-elev-1: #1c2027;
   --bg-elev-2: #232830;
   --bg-elev-3: #2a3038;
@@ -236,6 +238,7 @@ h1, h2, h3, h4, h5, h6,
 [data-theme="dim"] {
   --bg-chrome: #1c1f24;
   --bg-canvas: #22262d;
+  --bg-canvas-hover: #2a2e36;
   --bg-elev-1: #2a2e36;
   --bg-elev-2: #32363f;
   --bg-elev-3: #3a3f48;
@@ -261,6 +264,7 @@ h1, h2, h3, h4, h5, h6,
 
   --bg-chrome: #fafafa;
   --bg-canvas: #ffffff;
+  --bg-canvas-hover: #f4f4f4;
   --bg-elev-1: #f4f4f4;
   --bg-elev-2: #ededed;
   --bg-elev-3: #e6e6e6;
@@ -286,6 +290,7 @@ h1, h2, h3, h4, h5, h6,
 
   --bg-chrome: #f5f1ea;
   --bg-canvas: #faf7f0;
+  --bg-canvas-hover: #efeae0;
   --bg-elev-1: #efeae0;
   --bg-elev-2: #e8e3d6;
   --bg-elev-3: #ddd6c7;

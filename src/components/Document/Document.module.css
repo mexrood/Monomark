@@ -80,7 +80,7 @@
   z-index: 50;
 }
 .toggleBtn:hover {
-  background: var(--bg-elev-3);
+  background: var(--bg-canvas-hover);
   color: var(--text-primary);
   border-color: var(--border-strong);
 }
