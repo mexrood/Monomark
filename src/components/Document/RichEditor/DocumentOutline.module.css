@@ -84,7 +84,7 @@
   transform: translateY(-50%);
   min-width: 220px;
   padding: 8px 6px;
-  background: var(--bg-surface);
+  background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 10px;
   box-shadow: var(--shadow-popover);
