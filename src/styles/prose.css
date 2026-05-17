@@ -121,7 +121,7 @@
   font-family: var(--font-mono);
   font-size: 13.5px;
   line-height: 1.55;
-  background: var(--bg-elev-1);
+  background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 6px;
   padding: 16px 20px;

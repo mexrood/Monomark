@@ -24,12 +24,12 @@
 }
 
 .item:hover {
-  background: var(--bg-elevated);
+  background: var(--bg-chrome-hover);
   color: var(--text-primary);
 }
 
 .itemActive {
-  background: var(--bg-overlay);
+  background: var(--bg-chrome-active);
   color: var(--text-primary);
   font-weight: 500;
 }

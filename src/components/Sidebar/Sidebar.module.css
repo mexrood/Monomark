@@ -53,7 +53,7 @@
 }
 
 .newNote:hover {
-  background: var(--bg-elevated);
+  background: var(--bg-chrome-hover);
   color: var(--text-primary);
 }
 
@@ -76,7 +76,7 @@
 }
 
 .newFolder:hover {
-  background: var(--bg-elevated);
+  background: var(--bg-chrome-hover);
   color: var(--text-primary);
 }
 
@@ -93,7 +93,7 @@
 }
 
 .searchRow:focus-within {
-  background: var(--bg-elevated);
+  background: var(--bg-chrome-hover);
 }
 
 .searchIcon {
@@ -179,12 +179,12 @@
 }
 
 .treeRow:hover {
-  background: var(--bg-elevated);
+  background: var(--bg-chrome-hover);
   color: var(--text-primary);
 }
 
 .treeRowActive {
-  background: var(--bg-overlay);
+  background: var(--bg-chrome-active);
   color: var(--text-primary);
   font-weight: var(--weight-medium);
 }
@@ -357,7 +357,7 @@
 }
 
 .mcpDotBtn:hover {
-  background: var(--bg-elevated);
+  background: var(--bg-chrome-hover);
 }
 
 .mcpDot {
