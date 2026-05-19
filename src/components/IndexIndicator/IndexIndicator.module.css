@@ -1,0 +1,44 @@
+.indicator {
+  position: fixed;
+  bottom: 12px;
+  right: 34px; /* left of the MCP dot (right: 14px, 10px wide) */
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  user-select: none;
+}
+
+.label {
+  font-family: inherit;
+}
+
+.spinner {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-subtle);
+  border-top-color: var(--text-tertiary);
+  animation: indexSpin 700ms linear infinite;
+}
+
+.warn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 11px;
+  height: 11px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 50%;
+  color: var(--bg-chrome);
+  background: #f59e0b;
+}
+
+@keyframes indexSpin {
+  to { transform: rotate(360deg); }
+}

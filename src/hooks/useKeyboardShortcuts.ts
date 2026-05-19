@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 import { useVaultStore } from '../store/useVaultStore'
 import { useUIStore } from '../store/useUIStore'
+import { useRelatedStore } from '../store/useRelatedStore'
+import { editorRegistry } from '../utils/editorRegistry'
+import { blockIdAtCursor } from '../components/Document/RichEditor/RelatedHints'
 import { maybeInitProject } from '../utils/initProject'
 
 export function useKeyboardShortcuts() {
@@ -24,6 +27,16 @@ export function useKeyboardShortcuts() {
       if (mod && e.key === 'k') {
         e.preventDefault()
         useUIStore.getState().openSearchPalette()
+        return
+      }
+
+      // Ctrl/Cmd + Shift + F — find thoughts related to the block at the cursor
+      if (mod && e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault()
+        const editor = editorRegistry.get()
+        if (!editor) return
+        const bid = blockIdAtCursor(editor.state)
+        if (bid) useRelatedStore.getState().openPanel(bid)
         return
       }
 

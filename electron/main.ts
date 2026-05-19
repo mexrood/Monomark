@@ -9,8 +9,12 @@ import { registerAppIPC } from './ipc/app'
 import { registerMcpIPC } from './ipc/mcp'
 import { registerUpdaterIPC } from './ipc/updater'
 import { registerAiIPC } from './ipc/ai'
+import { registerIndexIPC } from './ipc/index'
+import { registerSearchIPC } from './ipc/search'
 import { mcpServerManager } from './mcp/server'
 import { buildIndex } from './mcp/search-index'
+import { initDb, closeDb } from './blocks/db'
+import { startIndexing } from './blocks/indexer'
 import { startWatcher, stopWatcher } from './watcher'
 import { store } from './store'
 import { initAutoUpdater } from './updater'
@@ -206,6 +210,8 @@ registerAppIPC()
 registerMcpIPC()
 registerUpdaterIPC()
 registerAiIPC()
+registerIndexIPC()
+registerSearchIPC()
 
 // ── Per-sender window helpers ────────────────────────────────────────────────
 // Using BrowserWindow.fromWebContents(event.sender) lets minimize/maximize/close
@@ -318,6 +324,11 @@ app.whenReady().then(() => {
     buildIndex(existingVault).catch(e =>
       console.error('[main] Search index build failed:', e)
     )
+
+    // Embeddings index (Phase 2) — runs in the background, never blocks the UI.
+    initDb(existingVault)
+      .then(() => startIndexing(existingVault))
+      .catch(e => console.error('[main] Embeddings index failed:', e))
   }
 
   // Auto-start MCP if it was enabled on last run
@@ -353,5 +364,6 @@ app.on('before-quit', () => {
   // instead of hiding to tray. Covers app.quit() calls and OS quit signals.
   ;(app as typeof app & { isQuitting: boolean }).isQuitting = true
   stopWatcher()
+  closeDb()
   destroyTray()
 })

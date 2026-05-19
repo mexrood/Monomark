@@ -4,6 +4,11 @@ import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
 import { resolve } from 'path'
 
+// Native / heavy modules must stay external — they cannot be bundled by rollup
+// (.node addons, .wasm glue, ESM-only packages reached via dynamic import())
+// and are require()'d / import()'d at runtime instead.
+const electronExternals = ['electron', 'sql.js', '@xenova/transformers', 'node-llama-cpp']
+
 export default defineConfig({
   build: {
     sourcemap: false,
@@ -21,10 +26,7 @@ export default defineConfig({
             sourcemap: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              // node-llama-cpp is ESM-only with native .node binaries — it must
-              // stay external. engine.ts reaches it via a dynamic import() so
-              // rollup keeps it as a real import() the CJS bundle can resolve.
-              external: ['electron', 'node-llama-cpp'],
+              external: electronExternals,
             },
           },
         },
@@ -36,7 +38,7 @@ export default defineConfig({
             sourcemap: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['electron'],
+              external: electronExternals,
             },
           },
         },
@@ -52,7 +54,21 @@ export default defineConfig({
             sourcemap: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['electron', 'node-llama-cpp'],
+              external: electronExternals,
+            },
+          },
+        },
+      },
+      {
+        // Embedding worker thread — runs Transformers.js off the main thread.
+        // Emitted as dist-electron/embedderWorker.js (see electron/blocks/embedder.ts).
+        entry: 'electron/blocks/embedderWorker.ts',
+        vite: {
+          build: {
+            sourcemap: false,
+            outDir: 'dist-electron',
+            rollupOptions: {
+              external: electronExternals,
             },
           },
         },
