@@ -17,7 +17,11 @@ import {
   Quote,
   Table,
   Minus,
+  Sparkles,
+  TextQuote,
+  Waypoints,
 } from 'lucide-react'
+import { aiExpand, aiSummarize, aiConnect } from './aiCommands'
 
 export interface SlashCommand {
   label: string
@@ -101,6 +105,24 @@ SlashMenu.displayName = 'SlashMenu'
 // ── Command definitions ───────────────────────────────────────────────────────
 
 export const SLASH_COMMANDS: SlashCommand[] = [
+  {
+    label: 'Expand with AI',
+    keywords: ['expand', 'ai', 'develop', 'elaborate'],
+    icon: Sparkles,
+    action: (editor, range) => aiExpand(editor, range),
+  },
+  {
+    label: 'Summarize with AI',
+    keywords: ['summarize', 'ai', 'condense', 'shorten'],
+    icon: TextQuote,
+    action: (editor, range) => aiSummarize(editor, range),
+  },
+  {
+    label: 'Connect related notes',
+    keywords: ['connect', 'ai', 'related', 'links'],
+    icon: Waypoints,
+    action: (editor, range) => { void aiConnect(editor, range) },
+  },
   {
     label: 'Heading 1',
     keywords: ['h1', 'heading', 'title'],
