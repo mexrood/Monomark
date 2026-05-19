@@ -54,3 +54,39 @@ export interface AISnapshot extends AIState {
   /** Catalog ids with a partial (.part) download that can be resumed. */
   partialIds: string[]
 }
+
+// ── LLM provider abstraction (cloud + local) ─────────────────────────────────
+
+export interface GenerateOptions {
+  maxTokens?: number
+  temperature?: number
+  systemPrompt?: string
+  // No streaming in this phase — generate() returns the full string.
+}
+
+/**
+ * Uniform interface over any LLM backend. The local node-llama-cpp engine and
+ * the cloud providers (Gemini, Groq) all implement this; callers go through
+ * the registry's active provider and never care which one it is.
+ */
+export interface LLMProvider {
+  /** Stable id: 'local' | 'gemini' | 'groq'. */
+  id: string
+  /** Display name, e.g. "Gemini 2.0 Flash". */
+  name: string
+  /** Ready to serve: local → model available; cloud → API key present. */
+  isReady(): Promise<boolean>
+  /** Generate text for a prompt. Throws on failure. */
+  generate(prompt: string, options?: GenerateOptions): Promise<string>
+  /** Optional richer status for diagnostics / the Settings UI. */
+  getStatus?(): Promise<{ ready: boolean; reason?: string }>
+}
+
+/** Per-provider info surfaced to the renderer. */
+export interface ProviderInfo {
+  id: string
+  name: string
+  ready: boolean
+  /** Whether an API key is stored (always true for the keyless local provider). */
+  hasKey: boolean
+}

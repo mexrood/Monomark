@@ -6,6 +6,7 @@ import { GeneralPanel } from './panels/GeneralPanel'
 import { LaunchPanel } from './panels/LaunchPanel'
 import { McpPanel } from './McpPanel'
 import { AIPanel } from './panels/AIPanel'
+import { AIProviderPanel } from './panels/AIProviderPanel'
 
 export const SettingsView: React.FC = () => {
   const settingsTab = useUIStore(s => s.settingsTab)
@@ -24,6 +25,7 @@ export const SettingsView: React.FC = () => {
       {settingsTab === 'launch'  && <LaunchPanel />}
       {settingsTab === 'mcp'     && <McpPanel />}
       {settingsTab === 'ai'      && <AIPanel />}
+      {settingsTab === 'ai-provider' && <AIProviderPanel />}
     </div>
   )
 }
