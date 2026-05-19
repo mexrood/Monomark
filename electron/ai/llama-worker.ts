@@ -53,7 +53,15 @@ parentPort?.on('message', async (msg: InMessage) => {
   } else if (msg.type === 'prompt') {
     try {
       if (!session) throw new Error('No model loaded')
-      const text = await session.prompt(msg.text, { maxTokens: 256 })
+      // Small GGUF models decode into repetition loops under greedy sampling,
+      // especially on repetitive input. A little temperature + a repeat
+      // penalty keeps the output varied and coherent.
+      const text = await session.prompt(msg.text, {
+        maxTokens: 400,
+        temperature: 0.4,
+        topP: 0.9,
+        repeatPenalty: { penalty: 1.3, lastTokens: 128 },
+      })
       parentPort!.postMessage({ type: 'prompt-result', id: msg.id, ok: true, text })
     } catch (err) {
       parentPort!.postMessage({
