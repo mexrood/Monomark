@@ -28,7 +28,9 @@ export function registerAiIPC() {
 
   ipcMain.handle('ai:unload', () => aiManager.unload())
 
-  ipcMain.handle('ai:prompt', (_e, text: string) => aiManager.prompt(text))
+  // Routes through the active provider (local / Gemini / Groq) — every UI
+  // caller (slash commands, AIPanel test prompt) honors the user's choice.
+  ipcMain.handle('ai:prompt', (_e, text: string) => registry.getActive().generate(text))
 
   // ── LLM provider abstraction (local + cloud) ──────────────────────────────
 
