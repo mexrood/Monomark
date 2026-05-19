@@ -11,6 +11,7 @@ import { registerUpdaterIPC } from './ipc/updater'
 import { registerAiIPC } from './ipc/ai'
 import { registerIndexIPC } from './ipc/index'
 import { registerSearchIPC } from './ipc/search'
+import { registerSummaryIPC } from './ipc/summary'
 import { mcpServerManager } from './mcp/server'
 import { buildIndex } from './mcp/search-index'
 import { initDb, closeDb } from './blocks/db'
@@ -212,6 +213,7 @@ registerUpdaterIPC()
 registerAiIPC()
 registerIndexIPC()
 registerSearchIPC()
+registerSummaryIPC()
 
 // ── Per-sender window helpers ────────────────────────────────────────────────
 // Using BrowserWindow.fromWebContents(event.sender) lets minimize/maximize/close

@@ -6,6 +6,7 @@ import { getDb, isDbReady, schedulePersist, persistNow, serializeEmbedding, hash
 import { embed, initEmbedder, isReady } from './embedder'
 import { setIndexStatus } from '../ipc/index'
 import { markSelfWrite } from '../watcher'
+import { enqueueSummary, forgetSummary } from './summarizer'
 
 export interface IndexResult {
   inserted: number
@@ -107,6 +108,10 @@ export async function indexFile(relPath: string, content: string): Promise<Index
   }
 
   if (result.inserted + result.updated + result.deleted > 0) schedulePersist()
+
+  // Phase D — refresh this file's one-line summary in the background.
+  enqueueSummary(relPath, content)
+
   return result
 }
 
@@ -115,6 +120,7 @@ export function deleteFileIndex(relPath: string): number {
   if (!isDbReady()) return 0
   const changes = getDb().prepare('DELETE FROM blocks WHERE file = ?').run(relPath).changes
   if (changes > 0) schedulePersist()
+  forgetSummary(relPath)
   return changes
 }
 

@@ -5,6 +5,7 @@ import type { VaultNode } from '../../types/vault'
 import { useVaultStore } from '../../store/useVaultStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useDragStore } from '../../store/useDragStore'
+import { useSummaryStore } from '../../store/useSummaryStore'
 import styles from './Sidebar.module.css'
 
 export interface ContextMenuState {
@@ -63,6 +64,11 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   const renamingPath = useUIStore(s => s.renamingPath)
   const setRenamingPath = useUIStore(s => s.setRenamingPath)
   const setFocusedFolder = useUIStore(s => s.setFocusedFolder)
+
+  // Phase D — one-line AI summary shown under the file name (files only).
+  const summary = useSummaryStore(s =>
+    node.kind === 'file' ? s.summaries[node.path] : undefined
+  )
 
   const isActive = document.kind === 'vault' && document.path === node.path
   const isOpen = node.kind === 'folder' && expandedFolders.has(node.path)
@@ -224,6 +230,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
 
   const rowClass = [
     styles.treeRow,
+    summary ? styles.treeRowSummary : '',
     isActive ? styles.treeRowActive : '',
     isDragging ? styles.treeRowDragging : '',
     isDragOver ? styles.treeRowDragOver : '',
@@ -279,9 +286,12 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
           />
         ) : (
           <>
-            <span className={`${styles.nodeName} ${node.kind === 'folder' ? styles.nodeNameFolder : ''}`}>
-              {displayName(node)}
-            </span>
+            <div className={styles.nodeText}>
+              <span className={`${styles.nodeName} ${node.kind === 'folder' ? styles.nodeNameFolder : ''}`}>
+                {displayName(node)}
+              </span>
+              {summary && <span className={styles.nodeSummary}>{summary}</span>}
+            </div>
             <button
               className={styles.dotButton}
               onClick={handleDotClick}

@@ -49,6 +49,13 @@ const SCHEMA = `
   CREATE INDEX IF NOT EXISTS idx_blocks_file ON blocks(file);
   CREATE INDEX IF NOT EXISTS idx_blocks_updated ON blocks(updated_at);
   CREATE INDEX IF NOT EXISTS idx_blocks_hash ON blocks(hash);
+
+  CREATE TABLE IF NOT EXISTS file_summaries (
+    file TEXT PRIMARY KEY,
+    summary TEXT NOT NULL,
+    hash TEXT NOT NULL,
+    updated_at INTEGER NOT NULL
+  );
 `
 
 /**
@@ -170,4 +177,44 @@ export function deserializeEmbedding(buf: Uint8Array): Float32Array {
 /** sha256 of a block's text — used to detect changed blocks cheaply. */
 export function hashText(text: string): string {
   return createHash('sha256').update(text).digest('hex')
+}
+
+// ── file_summaries (Phase D) ─────────────────────────────────────────────────
+
+/** The stored summary for a file, or undefined if none / DB not ready. */
+export function getFileSummary(file: string): { summary: string; hash: string } | undefined {
+  if (!rawDb) return undefined
+  return getDb()
+    .prepare('SELECT summary, hash FROM file_summaries WHERE file = ?')
+    .get(file) as { summary: string; hash: string } | undefined
+}
+
+/** Insert or replace a file's one-line summary. */
+export function upsertFileSummary(file: string, summary: string, hash: string): void {
+  if (!rawDb) return
+  getDb()
+    .prepare(
+      `INSERT INTO file_summaries (file, summary, hash, updated_at) VALUES (?, ?, ?, ?)
+       ON CONFLICT(file) DO UPDATE SET
+         summary = excluded.summary, hash = excluded.hash, updated_at = excluded.updated_at`,
+    )
+    .run(file, summary, hash, Date.now())
+  schedulePersist()
+}
+
+export function deleteFileSummary(file: string): void {
+  if (!rawDb) return
+  getDb().prepare('DELETE FROM file_summaries WHERE file = ?').run(file)
+  schedulePersist()
+}
+
+/** All summaries, as a vault-relative-path → summary map. */
+export function getAllFileSummaries(): Record<string, string> {
+  if (!rawDb) return {}
+  const rows = getDb()
+    .prepare('SELECT file, summary FROM file_summaries')
+    .all() as { file: string; summary: string }[]
+  const out: Record<string, string> = {}
+  for (const row of rows) out[row.file] = row.summary
+  return out
 }

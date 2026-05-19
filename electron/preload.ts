@@ -95,6 +95,12 @@ contextBridge.exposeInMainWorld('marrow', {
     classifyFile: (absPath: string) =>
       ipcRenderer.invoke('search:classifyFile', absPath),
   },
+  summary: {
+    getAll: () => ipcRenderer.invoke('summary:getAll'),
+    onUpdated: (cb: (payload: { file: string; summary: string }) => void) =>
+      ipcRenderer.on('summary:updated', (_event, payload) => cb(payload)),
+    offUpdated: () => ipcRenderer.removeAllListeners('summary:updated'),
+  },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
     download: () => ipcRenderer.invoke('updater:download'),

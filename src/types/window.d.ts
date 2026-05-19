@@ -207,6 +207,13 @@ interface MarrowSearchAPI {
   classifyFile(absPath: string): Promise<FileIntents>
 }
 
+interface MarrowSummaryAPI {
+  /** Map of absolute file path → one-line summary. */
+  getAll(): Promise<Record<string, string>>
+  onUpdated(cb: (payload: { file: string; summary: string }) => void): void
+  offUpdated(): void
+}
+
 interface MarrowAPI {
   window: MarrowWindowAPI
   app: MarrowAppAPI
@@ -221,6 +228,7 @@ interface MarrowAPI {
   updater?: MarrowUpdaterAPI
   index?: MarrowIndexAPI
   search?: MarrowSearchAPI
+  summary?: MarrowSummaryAPI
 }
 
 declare global {

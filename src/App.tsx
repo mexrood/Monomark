@@ -22,6 +22,7 @@ import { useSearchStore } from './store/useSearchStore'
 import { useDialogStore } from './store/useDialogStore'
 import { useAppStore } from './store/useAppStore'
 import { useAIStore } from './store/useAIStore'
+import { useSummaryStore } from './store/useSummaryStore'
 import { useUIStore } from './store/useUIStore'
 import { useDragStore } from './store/useDragStore'
 import { flattenTree } from './store/useVaultStore'
@@ -36,6 +37,9 @@ const MainApp: React.FC = () => {
 
   // Init local-AI store (catalog, downloaded models, engine state)
   useEffect(() => { useAIStore.getState().init() }, [])
+
+  // Init file-summary store (one-liners shown in the sidebar tree)
+  useEffect(() => { useSummaryStore.getState().init() }, [])
 
   // Restore last open document
   useEffect(() => {
