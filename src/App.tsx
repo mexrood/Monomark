@@ -8,12 +8,16 @@ import { ConfirmDialog } from './components/Dialog/ConfirmDialog'
 import { SettingsView } from './components/Settings/SettingsView'
 import { ToastContainer } from './components/Toast/Toast'
 import { McpStatusDot } from './components/McpStatusDot/McpStatusDot'
+import { IndexIndicator } from './components/IndexIndicator/IndexIndicator'
+import { SynapseCounter } from './components/SynapseCounter/SynapseCounter'
+import { RelatedPanel } from './components/RelatedPanel/RelatedPanel'
 import { ScrollBar } from './components/ScrollBar/ScrollBar'
 import { SearchPalette } from './components/SearchPalette/SearchPalette'
 import { useVaultInit } from './hooks/useVaultInit'
 import { useFileWatcher } from './hooks/useFileWatcher'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useVaultStore } from './store/useVaultStore'
+import { useIndexStore } from './store/useIndexStore'
 import { useSearchStore } from './store/useSearchStore'
 import { useDialogStore } from './store/useDialogStore'
 import { useAppStore } from './store/useAppStore'
@@ -37,6 +41,17 @@ const MainApp: React.FC = () => {
       useVaultStore.getState().openDocument(lastDoc).catch(() => {})
     }, 0)
     return () => clearTimeout(tick)
+  }, [])
+
+  // Subscribe to embeddings-index status (Phase 2 progress indicator)
+  useEffect(() => {
+    if (!window.marrow?.index) return
+    window.marrow.index
+      .getStatus()
+      .then(s => useIndexStore.getState().setStatus(s))
+      .catch(() => {})
+    window.marrow.index.onStatus(s => useIndexStore.getState().setStatus(s))
+    return () => window.marrow.index?.offStatus()
   }, [])
 
   // Register OS file-open handler (macOS open-file + Windows second-instance)
@@ -164,6 +179,9 @@ const MainApp: React.FC = () => {
     <>
       <TitleBar onOpenSettings={() => openSettings()} />
       <McpStatusDot />
+      <IndexIndicator />
+      <SynapseCounter />
+      <RelatedPanel />
       {searchPaletteOpen && <SearchPalette />}
       <main className={styles.main}>
         <Sidebar />

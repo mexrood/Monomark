@@ -3,6 +3,9 @@ import { toolRead } from './read'
 import { toolWrite } from './write'
 import { toolSearch } from './search'
 import { toolCreateFolder } from './create-folder'
+import { toolSearchBlocks } from './search-blocks'
+import { toolFindRelated } from './find-related'
+import { toolGetBlock } from './get-block'
 import { withAudit } from '../audit'
 import { VaultError } from '../paths'
 
@@ -149,6 +152,104 @@ export const tools: ToolDef[] = [
     },
     handler: wrapHandler('vault_create_folder', (args) =>
       toolCreateFolder(args as { path: string; initialize_project?: boolean })
+    ),
+  },
+  {
+    name: 'vault_search_blocks',
+    description:
+      'Semantically search individual paragraphs and blocks in the user\'s vault by meaning, not just keywords. ' +
+      'Returns the most relevant paragraphs from the user\'s notes — each with its text, source file, last-edited date, ' +
+      'a block_id, and a relevance score. ' +
+      'USE THIS when the user asks about something they have written or thought about before, or when you want to ' +
+      'cite specific paragraphs (not whole files). DO NOT use it to list files (vault_list), read whole files ' +
+      '(vault_read), or do filename/keyword search (vault_search). ' +
+      'Because it uses semantic embeddings, it finds relevant content even when exact words differ. ' +
+      'When quoting a result to the user, format it as a blockquote followed by "— {file} (updated {date})".',
+    inputSchema: {
+      type: 'object',
+      required: ['query'],
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Natural-language description of what you are looking for.',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum results to return. Default: 10, max: 50.',
+        },
+        threshold: {
+          type: 'number',
+          description: 'Minimum similarity score 0-1. Default: 0.55.',
+        },
+      },
+    },
+    handler: wrapHandler('vault_search_blocks', (args) =>
+      toolSearchBlocks(args as { query?: string; limit?: number; threshold?: number })
+    ),
+  },
+  {
+    name: 'vault_find_related',
+    description:
+      'Find blocks semantically related to a specific block in the user\'s vault. ' +
+      'Given a block_id (from vault_search_blocks or vault_get_block results), returns other paragraphs the user ' +
+      'has written on similar topics, ordered by similarity, excluding the original block. ' +
+      'USE THIS when you found one relevant block and want to explore similar thinking elsewhere, show how the ' +
+      'user\'s thinking on a topic evolved, or find contradictions/refinements of an idea. ' +
+      'DO NOT use it to search by text (vault_search_blocks) or read whole files (vault_read).',
+    inputSchema: {
+      type: 'object',
+      required: ['block_id'],
+      properties: {
+        block_id: {
+          type: 'string',
+          description: 'The 8-character block ID to find relations for.',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum results to return. Default: 10, max: 50.',
+        },
+        threshold: {
+          type: 'number',
+          description: 'Minimum similarity score 0-1. Default: 0.70.',
+        },
+        include_same_file: {
+          type: 'boolean',
+          description: 'Include blocks from the same file as the source. Default: false.',
+        },
+      },
+    },
+    handler: wrapHandler('vault_find_related', (args) =>
+      toolFindRelated(args as {
+        block_id?: string
+        limit?: number
+        threshold?: number
+        include_same_file?: boolean
+      })
+    ),
+  },
+  {
+    name: 'vault_get_block',
+    description:
+      'Get a single block by its 8-character block_id, optionally with surrounding context. ' +
+      'USE THIS when you have a block_id (from vault_search_blocks or vault_find_related) and want full details, ' +
+      'or want to see the blocks immediately before/after it for context before quoting. ' +
+      'Returns the block content, metadata (file, dates), whether its file still exists, and optional context.',
+    inputSchema: {
+      type: 'object',
+      required: ['block_id'],
+      properties: {
+        block_id: {
+          type: 'string',
+          description: 'The 8-character block ID.',
+        },
+        context: {
+          type: 'number',
+          description: 'Number of surrounding blocks (before and after) to include. 0-3, default 0.',
+        },
+      },
+    },
+    handler: wrapHandler('vault_get_block', (args) =>
+      toolGetBlock(args as { block_id?: string; context?: number })
     ),
   },
 ]

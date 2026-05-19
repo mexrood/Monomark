@@ -1,4 +1,5 @@
 import type { VaultNode } from './vault'
+import type { IndexStatus } from '../store/useIndexStore'
 
 interface MarrowWindowAPI {
   minimize(): Promise<void>
@@ -117,6 +118,35 @@ interface MarrowUpdaterAPI {
   offStateChange(): void
 }
 
+interface MarrowIndexAPI {
+  getStatus(): Promise<IndexStatus>
+  onStatus(cb: (status: IndexStatus) => void): void
+  offStatus(): void
+}
+
+export interface SearchResult {
+  id: string
+  file: string
+  line: number
+  block_type: string
+  text: string
+  similarity: number
+  updated_at: number
+}
+
+export interface SearchOptions {
+  threshold?: number
+  limit?: number
+  sameFile?: boolean
+}
+
+interface MarrowSearchAPI {
+  findRelatedToBlock(blockId: string, options?: SearchOptions): Promise<SearchResult[]>
+  searchBlocks(query: string, options?: SearchOptions): Promise<SearchResult[]>
+  countSynapses(): Promise<number>
+  countRelatedForBlocks(blockIds: string[], threshold?: number): Promise<Record<string, number>>
+}
+
 interface MarrowAPI {
   window: MarrowWindowAPI
   app: MarrowAppAPI
@@ -128,6 +158,8 @@ interface MarrowAPI {
   mcp?: MarrowMcpAPI
   preview?: MarrowPreviewAPI
   updater?: MarrowUpdaterAPI
+  index?: MarrowIndexAPI
+  search?: MarrowSearchAPI
 }
 
 declare global {

@@ -4,6 +4,10 @@ import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
 import { resolve } from 'path'
 
+// Native / heavy modules must stay external — they cannot be bundled by rollup
+// (.node addons, dynamic model loading) and are require()'d at runtime instead.
+const electronExternals = ['electron', 'sql.js', '@xenova/transformers']
+
 export default defineConfig({
   build: {
     sourcemap: false,
@@ -21,7 +25,7 @@ export default defineConfig({
             sourcemap: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['electron'],
+              external: electronExternals,
             },
           },
         },
@@ -33,12 +37,26 @@ export default defineConfig({
             sourcemap: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['electron'],
+              external: electronExternals,
             },
           },
         },
         onstart(options) {
           options.reload()
+        },
+      },
+      {
+        // Embedding worker thread — runs Transformers.js off the main thread.
+        // Emitted as dist-electron/embedderWorker.js (see electron/blocks/embedder.ts).
+        entry: 'electron/blocks/embedderWorker.ts',
+        vite: {
+          build: {
+            sourcemap: false,
+            outDir: 'dist-electron',
+            rollupOptions: {
+              external: electronExternals,
+            },
+          },
         },
       },
     ]),

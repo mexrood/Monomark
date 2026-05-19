@@ -62,6 +62,21 @@ contextBridge.exposeInMainWorld('marrow', {
     offLoad: () => ipcRenderer.removeAllListeners('preview:load'),
     openInMain: (filePath: string) => ipcRenderer.invoke('preview:openInMain', filePath),
   },
+  index: {
+    getStatus: () => ipcRenderer.invoke('index:getStatus'),
+    onStatus: (cb: (status: unknown) => void) =>
+      ipcRenderer.on('indexer:status', (_event, status) => cb(status)),
+    offStatus: () => ipcRenderer.removeAllListeners('indexer:status'),
+  },
+  search: {
+    findRelatedToBlock: (blockId: string, options?: unknown) =>
+      ipcRenderer.invoke('search:findRelatedToBlock', blockId, options),
+    searchBlocks: (query: string, options?: unknown) =>
+      ipcRenderer.invoke('search:searchBlocks', query, options),
+    countSynapses: () => ipcRenderer.invoke('search:countSynapses'),
+    countRelatedForBlocks: (blockIds: string[], threshold?: number) =>
+      ipcRenderer.invoke('search:countRelatedForBlocks', blockIds, threshold),
+  },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
     download: () => ipcRenderer.invoke('updater:download'),

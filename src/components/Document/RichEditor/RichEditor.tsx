@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { scrollRegistry } from '../../../utils/scrollRegistry'
-import { useEditor, EditorContent } from '@tiptap/react'
+import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import { useVaultStore } from '../../../store/useVaultStore'
 import { useAutoSave } from '../../../hooks/useAutoSave'
 import { attachImageFromBlob } from '../../../utils/attachImage'
 import { splitFrontmatter, joinFrontmatter } from '../../../utils/frontmatter'
+import { debounce } from '../../../utils/debounce'
+import { editorRegistry } from '../../../utils/editorRegistry'
 import { buildExtensions } from './extensions'
+import { ensureBlockIdsInEditor } from './BlockId'
 import { FrontmatterCard } from './FrontmatterCard'
 import { FormattingBubbleMenu } from './FormattingBubbleMenu'
 import { DocumentOutline } from './DocumentOutline'
@@ -31,6 +34,14 @@ export const RichEditor: React.FC = () => {
   // Keep the front-matter block in a ref so TipTap never sees it
   const frontmatterRef = useRef('')
 
+  // Debounced block-id injection. Runs after a real edit settles — never on
+  // file open, since setContent uses `emitUpdate: false` and onUpdate stays
+  // silent. Kept shorter than the 500ms auto-save so IDs land in the editor
+  // (and thus the serialized markdown) before the file is written.
+  const ensureIdsRef = useRef(
+    debounce((...args: unknown[]) => { ensureBlockIdsInEditor(args[0] as Editor) }, 250),
+  )
+
   const rawContent = document.kind === 'vault' ? document.content : ''
 
   // Stable "file key" — recreate the editor instance when the open file changes
@@ -53,6 +64,9 @@ export const RichEditor: React.FC = () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const body = (e.storage as Record<string, any>).markdown.getMarkdown() as string
         updateContent(joinFrontmatter(frontmatterRef.current, body))
+        // Tag any new blocks with an ID; the resulting transaction re-fires
+        // onUpdate, so the saved markdown ends up carrying the IDs.
+        ensureIdsRef.current(e)
       },
 
       editorProps: {
@@ -123,6 +137,12 @@ export const RichEditor: React.FC = () => {
     // Recreate the editor when the open file path changes
     [fileKey],
   )
+
+  // Expose the editor instance for block navigation (Phase 3)
+  useEffect(() => {
+    editorRegistry.set(editor)
+    return () => editorRegistry.set(null)
+  }, [editor])
 
   // ── Sync external file-watcher reloads ─────────────────────────────────
   useEffect(() => {

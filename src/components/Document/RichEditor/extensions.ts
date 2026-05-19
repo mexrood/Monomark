@@ -11,6 +11,8 @@ import Placeholder from '@tiptap/extension-placeholder'
 import { createLowlight, common } from 'lowlight'
 import type { Extensions } from '@tiptap/core'
 import { SlashExtension } from './SlashExtension'
+import { BlockId } from './BlockId'
+import { RelatedHints } from './RelatedHints'
 
 // Single lowlight instance shared across all editor instances
 const lowlight = createLowlight(common)
@@ -108,5 +110,11 @@ export function buildExtensions(_vaultPath: string): Extensions {
 
     // Slash-command menu triggered by "/"
     SlashExtension,
+
+    // Invisible Phase-1 block-id markers (round-trips `<!-- bid: ... -->`)
+    BlockId,
+
+    // Phase-3 search integration: Cmd+Shift+F + inline "↗ Related" hints
+    RelatedHints,
   ]
 }

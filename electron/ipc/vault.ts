@@ -4,6 +4,17 @@ import * as path from 'path'
 import { store } from '../store'
 import { startWatcher, stopWatcher, markSelfWrite } from '../watcher'
 import { buildIndex, updateFile } from '../mcp/search-index'
+import { ensureBlockIds } from '../blocks/injectIds'
+import { initDb, closeDb } from '../blocks/db'
+import { indexFile, deleteFileIndex, startIndexing } from '../blocks/indexer'
+
+/** Resolve a vault-relative, forward-slashed path, or null if outside the vault. */
+function toVaultRelPath(absPath: string): string | null {
+  const vaultPath = store.get('vaultPath')
+  if (!vaultPath) return null
+  const rel = path.relative(vaultPath, absPath).replace(/\\/g, '/')
+  return rel.startsWith('..') || path.isAbsolute(rel) ? null : rel
+}
 
 type VaultNode =
   | { kind: 'file'; path: string; name: string; mtime: number }
@@ -110,8 +121,13 @@ export function registerVaultIPC() {
       buildIndex(vaultPath).catch(e =>
         console.error('[vault] Failed to rebuild search index:', e)
       )
+      // Re-point the embeddings index at the new vault.
+      initDb(vaultPath)
+        .then(() => startIndexing(vaultPath))
+        .catch(e => console.error('[vault] Embeddings indexing failed:', e))
     } else {
       stopWatcher()
+      closeDb()
     }
   })
 
@@ -127,8 +143,36 @@ export function registerVaultIPC() {
 
   ipcMain.handle('vault:writeFile', async (_event, absPath: string, content: string) => {
     await fs.mkdir(path.dirname(absPath), { recursive: true })
+
+    // Ensure every block in a markdown file carries a unique block-id comment.
+    // Acts as a safety net for non-editor writes; editor saves already arrive
+    // with IDs in place, so this is a no-op for them.
+    let finalContent = content
+    let addedBlockIds: string[] = []
+    if (absPath.endsWith('.md')) {
+      try {
+        const result = ensureBlockIds(content)
+        finalContent = result.content
+        addedBlockIds = result.added
+      } catch (err) {
+        console.error('[vault] ensureBlockIds failed, writing content as-is:', err)
+      }
+    }
+
     markSelfWrite(absPath)
-    await fs.writeFile(absPath, content, 'utf-8')
+    await fs.writeFile(absPath, finalContent, 'utf-8')
+
+    // Re-index this file in the background — never block the save.
+    if (absPath.endsWith('.md')) {
+      const rel = toVaultRelPath(absPath)
+      if (rel) {
+        indexFile(rel, finalContent).catch(err =>
+          console.error('[vault] indexFile failed:', err),
+        )
+      }
+    }
+
+    return { ok: true, addedBlockIds }
   })
 
   ipcMain.handle('vault:createFile', async (_event, parentDir: string, name: string) => {
@@ -153,6 +197,14 @@ export function registerVaultIPC() {
   ipcMain.handle('vault:delete', async (_event, absPath: string) => {
     const { shell } = await import('electron')
     await shell.trashItem(absPath)
+
+    if (absPath.endsWith('.md')) {
+      const rel = toVaultRelPath(absPath)
+      if (rel) {
+        try { deleteFileIndex(rel) }
+        catch (err) { console.error('[vault] deleteFileIndex failed:', err) }
+      }
+    }
   })
 
   ipcMain.handle('vault:exists', async (_event, absPath: string) => {
