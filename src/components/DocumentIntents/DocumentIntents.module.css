@@ -1,0 +1,56 @@
+.bar {
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 14px 64px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1;
+  padding: 3px 9px;
+  border-radius: var(--radius-full);
+  border: 1px solid transparent;
+  user-select: none;
+  cursor: default;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.decision {
+  background: var(--sticker-green);
+  border-color: var(--sticker-green-border);
+  color: var(--sticker-green-text);
+}
+
+.question {
+  background: var(--sticker-blue);
+  border-color: var(--sticker-blue-border);
+  color: var(--sticker-blue-text);
+}
+
+.todo {
+  background: var(--sticker-yellow);
+  border-color: var(--sticker-yellow-border);
+  color: var(--sticker-yellow-text);
+}
+
+.observation {
+  background: var(--sticker-neutral);
+  border-color: var(--sticker-neutral-border);
+  color: var(--sticker-neutral-text);
+}
