@@ -14,6 +14,14 @@ afterPack: scripts/afterPack.js
 extraMetadata:
   dependencies: {}
 
+# ⚠ Local AI (node-llama-cpp) — production packaging is NOT yet solved.
+# node-llama-cpp is ESM-only with native .node binaries. The current config
+# (`!node_modules/**` + `extraMetadata.dependencies: {}`) strips ALL node_modules
+# from the package, so `import('node-llama-cpp')` will fail in the packaged app.
+# It works in `npm run dev` only. Before shipping AI features, node-llama-cpp,
+# its `@node-llama-cpp/<platform>` binary package, and its transitive runtime
+# deps must be added to `files` and the native binaries listed under `asarUnpack`.
+
 # Files to include in the app package
 files:
   - "dist/**/*"

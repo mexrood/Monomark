@@ -21,7 +21,10 @@ export default defineConfig({
             sourcemap: false,
             outDir: 'dist-electron',
             rollupOptions: {
-              external: ['electron'],
+              // node-llama-cpp is ESM-only with native .node binaries — it must
+              // stay external. engine.ts reaches it via a dynamic import() so
+              // rollup keeps it as a real import() the CJS bundle can resolve.
+              external: ['electron', 'node-llama-cpp'],
             },
           },
         },
@@ -39,6 +42,19 @@ export default defineConfig({
         },
         onstart(options) {
           options.reload()
+        },
+      },
+      {
+        // Local-AI worker thread — node-llama-cpp runs here, off the main loop.
+        entry: 'electron/ai/llama-worker.ts',
+        vite: {
+          build: {
+            sourcemap: false,
+            outDir: 'dist-electron',
+            rollupOptions: {
+              external: ['electron', 'node-llama-cpp'],
+            },
+          },
         },
       },
     ]),

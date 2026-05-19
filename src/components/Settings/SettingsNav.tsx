@@ -7,6 +7,7 @@ const TABS: { id: SettingsTab; label: string }[] = [
   { id: 'general',  label: 'General' },
   { id: 'launch',   label: 'Launch' },
   { id: 'mcp',      label: 'Server (MCP)' },
+  { id: 'ai',       label: 'AI Model' },
 ]
 
 export const SettingsNav: React.FC = () => {

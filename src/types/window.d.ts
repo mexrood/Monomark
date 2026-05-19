@@ -90,6 +90,58 @@ export interface McpAuditEntry {
   error?: string
 }
 
+export interface AICatalogModel {
+  id: string
+  name: string
+  params: string
+  sizeBytes: number
+  ram: string
+  speed: string
+  useCase: string
+  license: string
+  url: string
+}
+
+export type AIEngineState = 'idle' | 'loading' | 'ready' | 'error'
+
+export interface AIState {
+  enabled: boolean
+  activeModelId: string | null
+  engineState: AIEngineState
+  engineError: string | null
+}
+
+export interface AISnapshot extends AIState {
+  catalog: AICatalogModel[]
+  recommendedId: string
+  downloadedIds: string[]
+  partialIds: string[]
+}
+
+export interface AIDownloadProgress {
+  modelId: string
+  status: 'downloading' | 'done' | 'error'
+  percent: number
+  transferred: number
+  total: number
+  error?: string
+}
+
+interface MarrowAiAPI {
+  getSnapshot(): Promise<AISnapshot>
+  setEnabled(value: boolean): Promise<void>
+  download(modelId: string): Promise<void>
+  cancelDownload(modelId: string): Promise<void>
+  deleteModel(modelId: string): Promise<void>
+  activate(modelId: string): Promise<void>
+  unload(): Promise<void>
+  prompt(text: string): Promise<string>
+  onState(cb: (state: AIState) => void): void
+  offState(): void
+  onDownloadProgress(cb: (progress: AIDownloadProgress) => void): void
+  offDownloadProgress(): void
+}
+
 interface MarrowPreviewAPI {
   open(filePath: string, content: string): Promise<void>
   close(): Promise<void>
@@ -126,6 +178,7 @@ interface MarrowAPI {
   terminal?: MarrowTerminalAPI
   util?: MarrowUtilAPI
   mcp?: MarrowMcpAPI
+  ai?: MarrowAiAPI
   preview?: MarrowPreviewAPI
   updater?: MarrowUpdaterAPI
 }

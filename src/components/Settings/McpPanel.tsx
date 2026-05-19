@@ -232,7 +232,7 @@ export const McpPanel: React.FC = () => {
                 <br />
                 Open <em>Settings → Developer → Edit Config</em> and paste the snippet into{' '}
                 <code>mcpServers</code>. Fully quit and restart Claude Desktop.
-                In a new chat the tools button should show <strong>monomark</strong> with 5 tools.
+                In a new chat the tools button should show <strong>monomark</strong> with 6 tools.
                 <br />
                 Config file:{' '}
                 <code>%APPDATA%\Claude\claude_desktop_config.json</code> (Windows) /{' '}

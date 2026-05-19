@@ -8,6 +8,7 @@ import { registerTerminalIPC } from './ipc/terminal'
 import { registerAppIPC } from './ipc/app'
 import { registerMcpIPC } from './ipc/mcp'
 import { registerUpdaterIPC } from './ipc/updater'
+import { registerAiIPC } from './ipc/ai'
 import { mcpServerManager } from './mcp/server'
 import { buildIndex } from './mcp/search-index'
 import { startWatcher, stopWatcher } from './watcher'
@@ -204,6 +205,7 @@ registerTerminalIPC()
 registerAppIPC()
 registerMcpIPC()
 registerUpdaterIPC()
+registerAiIPC()
 
 // ── Per-sender window helpers ────────────────────────────────────────────────
 // Using BrowserWindow.fromWebContents(event.sender) lets minimize/maximize/close

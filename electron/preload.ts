@@ -53,6 +53,22 @@ contextBridge.exposeInMainWorld('marrow', {
     installToClaudeDesktop: () => ipcRenderer.invoke('mcp:installToClaudeDesktop'),
     getClaudeCodeCommand: () => ipcRenderer.invoke('mcp:getClaudeCodeCommand'),
   },
+  ai: {
+    getSnapshot: () => ipcRenderer.invoke('ai:getSnapshot'),
+    setEnabled: (value: boolean) => ipcRenderer.invoke('ai:setEnabled', value),
+    download: (modelId: string) => ipcRenderer.invoke('ai:download', modelId),
+    cancelDownload: (modelId: string) => ipcRenderer.invoke('ai:cancelDownload', modelId),
+    deleteModel: (modelId: string) => ipcRenderer.invoke('ai:deleteModel', modelId),
+    activate: (modelId: string) => ipcRenderer.invoke('ai:activate', modelId),
+    unload: () => ipcRenderer.invoke('ai:unload'),
+    prompt: (text: string) => ipcRenderer.invoke('ai:prompt', text),
+    onState: (cb: (state: unknown) => void) =>
+      ipcRenderer.on('ai:state', (_event, state) => cb(state)),
+    offState: () => ipcRenderer.removeAllListeners('ai:state'),
+    onDownloadProgress: (cb: (progress: unknown) => void) =>
+      ipcRenderer.on('ai:download-progress', (_event, progress) => cb(progress)),
+    offDownloadProgress: () => ipcRenderer.removeAllListeners('ai:download-progress'),
+  },
   preview: {
     open: (filePath: string, content: string) =>
       ipcRenderer.invoke('preview:open', { filePath, content }),

@@ -17,6 +17,7 @@ import { useVaultStore } from './store/useVaultStore'
 import { useSearchStore } from './store/useSearchStore'
 import { useDialogStore } from './store/useDialogStore'
 import { useAppStore } from './store/useAppStore'
+import { useAIStore } from './store/useAIStore'
 import { useUIStore } from './store/useUIStore'
 import { useDragStore } from './store/useDragStore'
 import { flattenTree } from './store/useVaultStore'
@@ -28,6 +29,9 @@ const MainApp: React.FC = () => {
 
   // Init app-level store (version, autostart, MCP status)
   useEffect(() => { useAppStore.getState().init() }, [])
+
+  // Init local-AI store (catalog, downloaded models, engine state)
+  useEffect(() => { useAIStore.getState().init() }, [])
 
   // Restore last open document
   useEffect(() => {

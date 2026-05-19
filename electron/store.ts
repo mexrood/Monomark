@@ -8,6 +8,8 @@ interface StoreSchema {
   mcpEnabled: boolean
   mcpToken: string
   mcpPort: number
+  aiEnabled: boolean
+  aiActiveModel: string
 }
 
 export const store = new ElectronStore<StoreSchema>({
@@ -19,5 +21,7 @@ export const store = new ElectronStore<StoreSchema>({
     mcpEnabled: false,
     mcpToken: '',
     mcpPort: 7456,
+    aiEnabled: false,
+    aiActiveModel: '',
   },
 })

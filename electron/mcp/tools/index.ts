@@ -3,6 +3,7 @@ import { toolRead } from './read'
 import { toolWrite } from './write'
 import { toolSearch } from './search'
 import { toolCreateFolder } from './create-folder'
+import { toolSummarizeFile } from './summarize'
 import { withAudit } from '../audit'
 import { VaultError } from '../paths'
 
@@ -149,6 +150,24 @@ export const tools: ToolDef[] = [
     },
     handler: wrapHandler('vault_create_folder', (args) =>
       toolCreateFolder(args as { path: string; initialize_project?: boolean })
+    ),
+  },
+  {
+    name: 'vault_summarize_file',
+    description:
+      'Summarize a markdown file from the user\'s vault using Monomark\'s local AI model. Returns a short 3-5 sentence summary instead of the full text — use this to save tokens when you only need the gist of a long note. Requires the user to have enabled AI and activated a model in Monomark.',
+    inputSchema: {
+      type: 'object',
+      required: ['path'],
+      properties: {
+        path: {
+          type: 'string',
+          description: 'Relative path inside vault, e.g. "projects/saas-pricing/pricing.md"',
+        },
+      },
+    },
+    handler: wrapHandler('vault_summarize_file', (args) =>
+      toolSummarizeFile(args as { path: string })
     ),
   },
 ]
