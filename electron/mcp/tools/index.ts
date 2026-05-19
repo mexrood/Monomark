@@ -4,6 +4,7 @@ import { toolWrite } from './write'
 import { toolSearch } from './search'
 import { toolCreateFolder } from './create-folder'
 import { toolSummarizeFile } from './summarize'
+import { toolSmartContext } from './smart-context'
 import { toolSearchBlocks } from './search-blocks'
 import { toolFindRelated } from './find-related'
 import { toolGetBlock } from './get-block'
@@ -269,6 +270,35 @@ export const tools: ToolDef[] = [
     },
     handler: wrapHandler('vault_get_block', (args) =>
       toolGetBlock(args as { block_id?: string; context?: number })
+    ),
+  },
+  {
+    name: 'vault_smart_context',
+    description:
+      'Answer a question using the user\'s vault without reading whole files. ' +
+      'Semantically searches the vault, then uses Monomark\'s local AI to distil the ' +
+      'most relevant blocks into a few key sentences — Claude gets a small, dense ' +
+      'context instead of tens of thousands of raw tokens. ' +
+      'USE THIS when you need the gist of what the user has written about a topic ' +
+      'across many notes. The response includes `distilled` (whether the local LLM ' +
+      'condensed it), `context` (the distilled text or raw blocks), and `sources` ' +
+      '(the files involved). Falls back to raw blocks when local AI is unavailable.',
+    inputSchema: {
+      type: 'object',
+      required: ['query'],
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Natural-language question or topic to gather context for.',
+        },
+        limit: {
+          type: 'number',
+          description: 'Max blocks to pull before distillation. Default: 30, max: 50.',
+        },
+      },
+    },
+    handler: wrapHandler('vault_smart_context', (args) =>
+      toolSmartContext(args as { query?: string; limit?: number })
     ),
   },
 ]
