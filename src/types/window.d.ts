@@ -206,19 +206,11 @@ export interface SearchOptions {
   sameFile?: boolean
 }
 
-export type Intent = 'decision' | 'question' | 'todo' | 'observation'
-
-export interface FileIntents {
-  counts: Record<Intent, number>
-  total: number
-}
-
 interface MarrowSearchAPI {
   findRelatedToBlock(blockId: string, options?: SearchOptions): Promise<SearchResult[]>
   searchBlocks(query: string, options?: SearchOptions): Promise<SearchResult[]>
   countSynapses(): Promise<number>
   countRelatedForBlocks(blockIds: string[], threshold?: number): Promise<Record<string, number>>
-  classifyFile(absPath: string): Promise<FileIntents>
 }
 
 interface MarrowSummaryAPI {

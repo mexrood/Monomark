@@ -100,8 +100,6 @@ contextBridge.exposeInMainWorld('marrow', {
     countSynapses: () => ipcRenderer.invoke('search:countSynapses'),
     countRelatedForBlocks: (blockIds: string[], threshold?: number) =>
       ipcRenderer.invoke('search:countRelatedForBlocks', blockIds, threshold),
-    classifyFile: (absPath: string) =>
-      ipcRenderer.invoke('search:classifyFile', absPath),
   },
   summary: {
     getAll: () => ipcRenderer.invoke('summary:getAll'),

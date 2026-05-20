@@ -12,7 +12,6 @@ import { ensureBlockIdsInEditor } from './BlockId'
 import { FrontmatterCard } from './FrontmatterCard'
 import { FormattingBubbleMenu } from './FormattingBubbleMenu'
 import { DocumentOutline } from './DocumentOutline'
-import { DocumentIntents } from '../../DocumentIntents/DocumentIntents'
 import styles from './RichEditor.module.css'
 
 export const RichEditor: React.FC = () => {
@@ -166,7 +165,6 @@ export const RichEditor: React.FC = () => {
       {frontmatterRef.current && (
         <FrontmatterCard content={frontmatterRef.current} />
       )}
-      <DocumentIntents path={document.kind === 'vault' ? document.path : ''} />
       <div className={styles.editorRow}>
         <DocumentOutline editor={editor} scrollContainer={scrollEl} />
         <EditorContent editor={editor} className={styles.editorContent} />
