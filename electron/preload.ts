@@ -97,7 +97,6 @@ contextBridge.exposeInMainWorld('marrow', {
       ipcRenderer.invoke('search:findRelatedToBlock', blockId, options),
     searchBlocks: (query: string, options?: unknown) =>
       ipcRenderer.invoke('search:searchBlocks', query, options),
-    countSynapses: () => ipcRenderer.invoke('search:countSynapses'),
     countRelatedForBlocks: (blockIds: string[], threshold?: number) =>
       ipcRenderer.invoke('search:countRelatedForBlocks', blockIds, threshold),
   },

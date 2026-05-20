@@ -9,7 +9,6 @@ import { SettingsView } from './components/Settings/SettingsView'
 import { ToastContainer } from './components/Toast/Toast'
 import { McpStatusDot } from './components/McpStatusDot/McpStatusDot'
 import { IndexIndicator } from './components/IndexIndicator/IndexIndicator'
-import { SynapseCounter } from './components/SynapseCounter/SynapseCounter'
 import { RelatedPanel } from './components/RelatedPanel/RelatedPanel'
 import { ScrollBar } from './components/ScrollBar/ScrollBar'
 import { SearchPalette } from './components/SearchPalette/SearchPalette'
@@ -188,7 +187,6 @@ const MainApp: React.FC = () => {
       <TitleBar onOpenSettings={() => openSettings()} />
       <McpStatusDot />
       <IndexIndicator />
-      <SynapseCounter />
       <RelatedPanel />
       {searchPaletteOpen && <SearchPalette />}
       <main className={styles.main}>

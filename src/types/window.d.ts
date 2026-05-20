@@ -209,7 +209,6 @@ export interface SearchOptions {
 interface MarrowSearchAPI {
   findRelatedToBlock(blockId: string, options?: SearchOptions): Promise<SearchResult[]>
   searchBlocks(query: string, options?: SearchOptions): Promise<SearchResult[]>
-  countSynapses(): Promise<number>
   countRelatedForBlocks(blockIds: string[], threshold?: number): Promise<Record<string, number>>
 }
 
