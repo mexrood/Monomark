@@ -3,6 +3,7 @@ import { toolRead } from './read'
 import { toolWrite } from './write'
 import { toolSearch } from './search'
 import { toolCreateFolder } from './create-folder'
+import { toolPatch } from './patch'
 import { toolSummarizeFile } from './summarize'
 import { toolSmartContext } from './smart-context'
 import { toolSearchBlocks } from './search-blocks'
@@ -68,7 +69,11 @@ export const tools: ToolDef[] = [
   {
     name: 'vault_read',
     description:
-      'Read the full text content of a markdown file from the user\'s vault. Use this to access notes, documentation, problem logs, or any other content the user has stored.',
+      'Read the full text content of a markdown file from the user\'s vault. ' +
+      'Use when you need the EXACT content of a specific file (e.g. executing a precise spec). ' +
+      'For "give me the gist of X across the vault" prefer vault_smart_context — it returns ' +
+      '~250 distilled tokens instead of thousands of raw content. For a one-paragraph summary ' +
+      'of a single document, prefer vault_summarize_file.',
     inputSchema: {
       type: 'object',
       required: ['path'],
@@ -86,7 +91,12 @@ export const tools: ToolDef[] = [
   {
     name: 'vault_write',
     description:
-      'Write content to a markdown file in the user\'s vault. By default, new files go to the inbox/ folder for the user to organize later. To save to a specific project, provide the full relative path. To overwrite an existing file, set overwrite: true — otherwise the call fails to prevent accidental data loss.',
+      '⚠ For EDITS to an existing file, use vault_patch instead — vault_patch costs ~30 tokens ' +
+      'per operation while vault_write re-emits the entire file (often thousands of tokens). ' +
+      'On a 50 KB doc the difference is ~100×. ' +
+      'Use vault_write only for: (a) creating a NEW file, or (b) replacing >70% of an existing ' +
+      'file\'s content. New files without a directory go to inbox/. To overwrite an existing ' +
+      'file, set overwrite: true — otherwise the call fails to prevent accidental data loss.',
     inputSchema: {
       type: 'object',
       required: ['path', 'content'],
@@ -109,6 +119,44 @@ export const tools: ToolDef[] = [
     },
     handler: wrapHandler('vault_write', (args) =>
       toolWrite(args as { path: string; content: string; overwrite?: boolean })
+    ),
+  },
+  {
+    name: 'vault_patch',
+    description:
+      'Surgically edit an EXISTING markdown file with a small list of operations. ' +
+      '**This is the default tool for any edit.** Each operation costs ~30 tokens; ' +
+      'vault_write costs thousands by re-emitting the whole file. ' +
+      'Anchors use block IDs — the `<!-- bid: XXXXXXXX -->` markers Monomark embeds in ' +
+      'markdown. Discover them with vault_search_blocks or vault_get_block, then reference ' +
+      'by bid. ' +
+      'Operations apply in order; if one\'s anchor isn\'t found it\'s skipped (the others still apply). ' +
+      'Supported ops:\n' +
+      '  • { op: "insert_after_block_id",  bid: "abcd1234", text: "..." }\n' +
+      '  • { op: "insert_before_block_id", bid: "abcd1234", text: "..." }\n' +
+      '  • { op: "replace",      find: "...", replace: "..." }   // first match\n' +
+      '  • { op: "replace_all",  find: "...", replace: "..." }\n' +
+      '  • { op: "delete_block", bid: "abcd1234" }                // removes block + its bid\n' +
+      'Block IDs are stable across edits, so multiple patches over time use the same anchors. ' +
+      'DO NOT use vault_write to edit an existing file when a vault_patch can express the change.',
+    inputSchema: {
+      type: 'object',
+      required: ['path', 'operations'],
+      properties: {
+        path: {
+          type: 'string',
+          description: 'Relative path inside vault, e.g. "projects/foo/notes.md"',
+        },
+        operations: {
+          type: 'array',
+          minItems: 1,
+          description: 'Ordered list of patch operations. See description for shapes.',
+          items: { type: 'object' },
+        },
+      },
+    },
+    handler: wrapHandler('vault_patch', (args) =>
+      toolPatch(args as { path?: string; operations?: never[] }),
     ),
   },
   {
