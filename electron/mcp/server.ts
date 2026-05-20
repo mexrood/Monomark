@@ -67,7 +67,30 @@ class McpServerManager extends EventEmitter {
     function createMcpServer() {
       const server = new McpServer(
         { name: 'marrow', version },
-        { capabilities: { tools: {} } }
+        {
+          capabilities: { tools: {} },
+          // Token-efficiency policy surfaced to every connected client. Good
+          // MCP hosts (Claude Desktop, Claude Code) merge this into the
+          // conversation's system context so the model picks the cheap tool
+          // automatically without the user spelling it out.
+          instructions:
+            'When working with the Monomark vault, prioritize token efficiency:\n\n' +
+            '1. To EDIT an existing markdown file → use vault_patch, not vault_write. ' +
+            'Each operation costs ~30 tokens; re-emitting a full file costs thousands. ' +
+            'Block IDs (the `<!-- bid: ... -->` markers Monomark embeds) are stable ' +
+            'anchors — find them with vault_search_blocks or vault_get_block.\n\n' +
+            '2. To QUERY information spanning many files → use vault_smart_context. ' +
+            'It returns ~250 distilled tokens instead of raw files (often 50K+).\n\n' +
+            '3. To READ a specific known file in full → use vault_read (only when you ' +
+            'need the exact content, e.g. for executing a precise spec).\n\n' +
+            '4. To CREATE a brand-new file or fully replace >70% of an existing file → ' +
+            'use vault_write. Never use it to edit an existing file when a vault_patch ' +
+            'could express the change.\n\n' +
+            '5. vault_summarize_file returns a one-paragraph summary — for "what is this ' +
+            'document about" rather than its raw content.\n\n' +
+            'Default to the cheapest tool that solves the task. Ask the user only when ' +
+            'their intent is genuinely ambiguous.',
+        },
       )
 
       server.setRequestHandler(ListToolsRequestSchema, async () => ({
