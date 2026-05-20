@@ -13,28 +13,20 @@ function fileName(relPath: string): string {
   return relPath.replace(/[\\/]+$/, '').split(/[\\/]/).pop()?.replace(/\.md$/i, '') ?? relPath
 }
 
-function formatRelative(ts: number): string {
-  const diff = Date.now() - ts
-  const min = Math.round(diff / 60_000)
-  if (min < 1) return 'just now'
-  if (min < 60) return `${min}m ago`
-  const hr = Math.round(min / 60)
-  if (hr < 24) return `${hr}h ago`
-  const days = Math.round(hr / 24)
-  if (days < 30) return `${days}d ago`
-  return new Date(ts).toLocaleDateString()
-}
-
-/** "Related thoughts" panel — semantically similar blocks (Cmd+Shift+F). */
+/**
+ * "Related thoughts" panel — shows the LLM-judged useful relations for the
+ * block at the cursor. Same data as the inline ↗ arrows, so panel and arrow
+ * never disagree. Opened via Cmd+Shift+F.
+ */
 export const RelatedPanel: React.FC = () => {
   const { isOpen, blockId, results, loading, close, setResults, setLoading } = useRelatedStore()
 
   useEffect(() => {
-    if (!isOpen || !blockId || !window.marrow?.search) return
+    if (!isOpen || !blockId || !window.marrow?.vault?.getRelationsForBlock) return
     let cancelled = false
     setLoading(true)
-    window.marrow.search
-      .findRelatedToBlock(blockId, { threshold: 0.8, limit: 8 })
+    window.marrow.vault
+      .getRelationsForBlock(blockId)
       .then(r => { if (!cancelled) { setResults(r); setLoading(false) } })
       .catch(() => { if (!cancelled) { setResults([]); setLoading(false) } })
     return () => { cancelled = true }
@@ -63,22 +55,21 @@ export const RelatedPanel: React.FC = () => {
 
         {!loading && results.length === 0 && (
           <div className={styles.state}>
-            No related thoughts found yet.
-            <span className={styles.hint}>Keep writing — connections form as your vault grows.</span>
+            No useful relations yet — keep writing.
+            <span className={styles.hint}>Connections appear here as the local AI judges them.</span>
           </div>
         )}
 
         {!loading && results.length > 0 && (
           <ul className={styles.results}>
             {results.map(r => (
-              <li key={r.id} className={styles.result}>
-                <button onClick={() => { navigateToBlock(r.file, r.id); close() }}>
+              <li key={r.toId} className={styles.result}>
+                <button onClick={() => { void navigateToBlock(r.toFile, r.toId); close() }}>
                   <div className={styles.meta}>
-                    <span className={styles.file}>{fileName(r.file)}</span>
-                    <span className={styles.score}>{Math.round(r.similarity * 100)}%</span>
+                    <span className={styles.file}>{fileName(r.toFile)}</span>
                   </div>
-                  <div className={styles.text}>{truncate(r.text, 200)}</div>
-                  <div className={styles.date}>{formatRelative(r.updated_at)}</div>
+                  <div className={styles.text}><strong>{r.label}</strong></div>
+                  <div className={styles.text}>{truncate(r.toText, 200)}</div>
                 </button>
               </li>
             ))}

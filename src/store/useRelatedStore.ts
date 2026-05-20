@@ -1,20 +1,21 @@
 import { create } from 'zustand'
-import type { SearchResult } from '../types/window'
+import type { Relation } from '../types/window'
 
 /**
- * State for the semantic "Related thoughts" feature (Phase 3).
- * Distinct from `useSearchStore` — that one is the MiniSearch text palette.
+ * State for the "Related thoughts" panel (Cmd+Shift+F). Holds LLM-judged
+ * useful relations for the active block — same data the inline ↗ arrow uses,
+ * so the panel and the arrow always agree.
  */
 interface RelatedStore {
   isOpen: boolean
   /** Block ID the panel is showing results for. */
   blockId: string | null
-  results: SearchResult[]
+  results: Relation[]
   loading: boolean
 
   openPanel(blockId: string): void
   close(): void
-  setResults(results: SearchResult[]): void
+  setResults(results: Relation[]): void
   setLoading(loading: boolean): void
 }
 
