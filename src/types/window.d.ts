@@ -44,6 +44,17 @@ interface MarrowVaultAPI {
     | { ok: true; path: string; renamedFrom?: string }
     | { ok: false; reason: 'conflict' | 'outside-vault' | 'no-vault' | 'error'; message?: string; existing?: string }
   >
+  getRelationsForBlock(blockId: string): Promise<Relation[]>
+}
+
+export interface Relation {
+  fromId: string
+  toId: string
+  label: string
+  similarity: number
+  toFile: string
+  toLine: number
+  toText: string
 }
 
 interface MarrowFileOpenAPI {
