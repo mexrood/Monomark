@@ -44,6 +44,17 @@ interface MarrowVaultAPI {
     | { ok: true; path: string; renamedFrom?: string }
     | { ok: false; reason: 'conflict' | 'outside-vault' | 'no-vault' | 'error'; message?: string; existing?: string }
   >
+  getRelationsForBlock(blockId: string): Promise<Relation[]>
+}
+
+export interface Relation {
+  fromId: string
+  toId: string
+  label: string
+  similarity: number
+  toFile: string
+  toLine: number
+  toText: string
 }
 
 interface MarrowFileOpenAPI {
@@ -206,19 +217,10 @@ export interface SearchOptions {
   sameFile?: boolean
 }
 
-export type Intent = 'decision' | 'question' | 'todo' | 'observation'
-
-export interface FileIntents {
-  counts: Record<Intent, number>
-  total: number
-}
-
 interface MarrowSearchAPI {
   findRelatedToBlock(blockId: string, options?: SearchOptions): Promise<SearchResult[]>
   searchBlocks(query: string, options?: SearchOptions): Promise<SearchResult[]>
-  countSynapses(): Promise<number>
   countRelatedForBlocks(blockIds: string[], threshold?: number): Promise<Record<string, number>>
-  classifyFile(absPath: string): Promise<FileIntents>
 }
 
 interface MarrowSummaryAPI {

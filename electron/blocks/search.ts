@@ -126,42 +126,6 @@ export async function searchBlocks(query: string, options: SearchOptions = {}): 
   return refineResults(scored, limit)
 }
 
-// ── Strong synapse counter (cached) ──────────────────────────────────────────
-// countStrongSynapses is O(n²); cache the result and only recompute when the
-// index actually changed (block count or newest updated_at differs).
-
-let synapseCache: { signature: string; count: number } | null = null
-
-function indexSignature(): string {
-  const db = getDb()
-  const row = db.prepare('SELECT COUNT(*) c, IFNULL(MAX(updated_at), 0) m FROM blocks').get() as {
-    c: number
-    m: number
-  }
-  return `${row.c}:${row.m}`
-}
-
-/** Count block pairs with similarity above `threshold` (strong synapses). */
-export function countStrongSynapses(threshold = 0.90): number {
-  if (!isDbReady()) return 0
-  const signature = indexSignature()
-  if (synapseCache && synapseCache.signature === signature) return synapseCache.count
-
-  const db = getDb()
-  const rows = db.prepare('SELECT embedding FROM blocks').all() as { embedding: Uint8Array }[]
-  const embs = rows.map(r => deserializeEmbedding(r.embedding))
-
-  let count = 0
-  for (let i = 0; i < embs.length; i++) {
-    for (let j = i + 1; j < embs.length; j++) {
-      if (cosineSimilarity(embs[i], embs[j]) >= threshold) count++
-    }
-  }
-
-  synapseCache = { signature, count }
-  return count
-}
-
 /**
  * Batch helper for inline "↗ Related" hints: for each given block ID, count how
  * many other-file blocks exceed `threshold`. One pass over the index — far

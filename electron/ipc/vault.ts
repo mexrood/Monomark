@@ -7,6 +7,7 @@ import { buildIndex, updateFile } from '../mcp/search-index'
 import { ensureBlockIds } from '../blocks/injectIds'
 import { initDb, closeDb } from '../blocks/db'
 import { indexFile, deleteFileIndex, startIndexing } from '../blocks/indexer'
+import { getUsefulRelationsForBlock } from '../blocks/relationCache'
 
 /** Resolve a vault-relative, forward-slashed path, or null if outside the vault. */
 function toVaultRelPath(absPath: string): string | null {
@@ -346,5 +347,10 @@ export function registerVaultIPC() {
     } catch (err) {
       return { ok: false, reason: 'error', message: err instanceof Error ? err.message : String(err) }
     }
+  })
+
+  // LLM-judged relations for a block (only useful=1 rows, joined with target).
+  ipcMain.handle('vault:getRelationsForBlock', (_event, blockId: string) => {
+    return getUsefulRelationsForBlock(blockId, 10)
   })
 }

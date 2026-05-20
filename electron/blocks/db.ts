@@ -56,6 +56,21 @@ const SCHEMA = `
     hash TEXT NOT NULL,
     updated_at INTEGER NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS relations (
+    block_id_from TEXT NOT NULL,
+    block_id_to   TEXT NOT NULL,
+    hash_from     TEXT NOT NULL,
+    hash_to       TEXT NOT NULL,
+    similarity    REAL NOT NULL,
+    useful        INTEGER NOT NULL,
+    label         TEXT,
+    created_at    INTEGER NOT NULL,
+    PRIMARY KEY (block_id_from, block_id_to)
+  );
+  CREATE INDEX IF NOT EXISTS idx_relations_from
+    ON relations(block_id_from)
+    WHERE useful = 1;
 `
 
 /**

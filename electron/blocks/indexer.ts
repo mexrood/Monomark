@@ -7,6 +7,7 @@ import { embed, initEmbedder, isReady } from './embedder'
 import { setIndexStatus } from '../ipc/index'
 import { markSelfWrite } from '../watcher'
 import { enqueueSummary, forgetSummary } from './summarizer'
+import { scheduleJudgesFor, invalidateForBlock } from './relationJudge'
 
 export interface IndexResult {
   inserted: number
@@ -57,6 +58,8 @@ export async function indexFile(relPath: string, content: string): Promise<Index
     .all(relPath) as { id: string; hash: string }[]
   const existingMap = new Map(existing.map(e => [e.id, e.hash]))
   const seenIds = new Set<string>()
+  /** Blocks whose text changed this pass — relations need re-judging. */
+  const changedIds: string[] = []
   const now = Date.now()
 
   const insertStmt = db.prepare(`
@@ -85,10 +88,14 @@ export async function indexFile(relPath: string, content: string): Promise<Index
 
     if (existingHash !== undefined) {
       updateStmt.run(relPath, line, block.type, text, blob, newHash, now, block.id)
+      // Stored text changed → any prior LLM-judged relations are stale.
+      invalidateForBlock(block.id)
+      changedIds.push(block.id)
       result.updated++
     } else {
       try {
         insertStmt.run(block.id, relPath, line, block.type, text, blob, newHash, now, now)
+        changedIds.push(block.id)
         result.inserted++
       } catch (err) {
         // Cross-file ID collision (Phase 1 dedup is per-file) — skip, don't crash.
@@ -103,6 +110,7 @@ export async function indexFile(relPath: string, content: string): Promise<Index
   for (const e of existing) {
     if (!seenIds.has(e.id)) {
       deleteStmt.run(e.id)
+      invalidateForBlock(e.id)
       result.deleted++
     }
   }
@@ -112,14 +120,25 @@ export async function indexFile(relPath: string, content: string): Promise<Index
   // Phase D — refresh this file's one-line summary in the background.
   enqueueSummary(relPath, content)
 
+  // Phase: LLM-judged relations — queue judgments for blocks whose text moved.
+  for (const id of changedIds) void scheduleJudgesFor(id)
+
   return result
 }
 
 /** Remove every indexed block belonging to a file. */
 export function deleteFileIndex(relPath: string): number {
   if (!isDbReady()) return 0
-  const changes = getDb().prepare('DELETE FROM blocks WHERE file = ?').run(relPath).changes
-  if (changes > 0) schedulePersist()
+  const db = getDb()
+  // Collect ids first so we can wipe their relations too.
+  const blockIds = db
+    .prepare('SELECT id FROM blocks WHERE file = ?')
+    .all(relPath) as { id: string }[]
+  const changes = db.prepare('DELETE FROM blocks WHERE file = ?').run(relPath).changes
+  if (changes > 0) {
+    for (const { id } of blockIds) invalidateForBlock(id)
+    schedulePersist()
+  }
   forgetSummary(relPath)
   return changes
 }

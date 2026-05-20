@@ -97,11 +97,8 @@ contextBridge.exposeInMainWorld('marrow', {
       ipcRenderer.invoke('search:findRelatedToBlock', blockId, options),
     searchBlocks: (query: string, options?: unknown) =>
       ipcRenderer.invoke('search:searchBlocks', query, options),
-    countSynapses: () => ipcRenderer.invoke('search:countSynapses'),
     countRelatedForBlocks: (blockIds: string[], threshold?: number) =>
       ipcRenderer.invoke('search:countRelatedForBlocks', blockIds, threshold),
-    classifyFile: (absPath: string) =>
-      ipcRenderer.invoke('search:classifyFile', absPath),
   },
   summary: {
     getAll: () => ipcRenderer.invoke('summary:getAll'),
@@ -139,5 +136,7 @@ contextBridge.exposeInMainWorld('marrow', {
     writeBinary: (relPath: string, base64: string) => ipcRenderer.invoke('vault:writeBinary', relPath, base64),
     importFile: (srcAbsPath: string, targetFolder: string, conflict: 'fail' | 'replace' | 'keep-both' = 'keep-both') =>
       ipcRenderer.invoke('vault:importFile', srcAbsPath, targetFolder, conflict),
+    getRelationsForBlock: (blockId: string) =>
+      ipcRenderer.invoke('vault:getRelationsForBlock', blockId),
   },
 })
