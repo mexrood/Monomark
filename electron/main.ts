@@ -9,6 +9,10 @@ import { registerAppIPC } from './ipc/app'
 import { registerMcpIPC } from './ipc/mcp'
 import { registerUpdaterIPC } from './ipc/updater'
 import { registerAiIPC } from './ipc/ai'
+import { registry } from './ai/registry'
+import { LocalLLMProvider } from './ai/providers/local'
+import { GeminiProvider } from './ai/providers/gemini'
+import { GroqProvider } from './ai/providers/groq'
 import { registerIndexIPC } from './ipc/index'
 import { registerSearchIPC } from './ipc/search'
 import { registerSummaryIPC } from './ipc/summary'
@@ -214,6 +218,13 @@ registerAiIPC()
 registerIndexIPC()
 registerSearchIPC()
 registerSummaryIPC()
+
+// ── LLM provider registry ─────────────────────────────────────────────────────
+// All AI features route through registry.getActive(); the saved active id is
+// restored inside the registry constructor.
+registry.register(new LocalLLMProvider())
+registry.register(new GeminiProvider())
+registry.register(new GroqProvider())
 
 // ── Per-sender window helpers ────────────────────────────────────────────────
 // Using BrowserWindow.fromWebContents(event.sender) lets minimize/maximize/close

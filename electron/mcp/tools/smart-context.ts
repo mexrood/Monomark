@@ -1,5 +1,5 @@
 import { searchBlocks } from '../../blocks/search'
-import { aiManager } from '../../ai/manager'
+import { registry } from '../../ai/registry'
 import { VaultError } from '../paths'
 
 // Phase C — the "token economy" tool. Instead of Claude reading whole files,
@@ -88,7 +88,7 @@ export async function toolSmartContext(args: { query?: string; limit?: number })
 
   let distilled: string
   try {
-    distilled = await aiManager.prompt(prompt)
+    distilled = await registry.getActive().generate(prompt)
   } catch (err) {
     // LLM unavailable — degrade to raw blocks rather than failing the call.
     return store({

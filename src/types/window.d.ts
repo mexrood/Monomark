@@ -128,6 +128,13 @@ export interface AIDownloadProgress {
   error?: string
 }
 
+export interface AIProviderInfo {
+  id: string
+  name: string
+  ready: boolean
+  hasKey: boolean
+}
+
 interface MarrowAiAPI {
   getSnapshot(): Promise<AISnapshot>
   setEnabled(value: boolean): Promise<void>
@@ -141,6 +148,13 @@ interface MarrowAiAPI {
   offState(): void
   onDownloadProgress(cb: (progress: AIDownloadProgress) => void): void
   offDownloadProgress(): void
+  // LLM provider abstraction
+  listProviders(): Promise<AIProviderInfo[]>
+  getActiveProvider(): Promise<string>
+  setActiveProvider(id: string): Promise<{ ok: boolean }>
+  saveApiKey(providerId: string, key: string): Promise<{ ok: boolean }>
+  deleteApiKey(providerId: string): Promise<{ ok: boolean }>
+  testProvider(providerId: string): Promise<{ ok: boolean; error?: string; response?: string }>
 }
 
 interface MarrowPreviewAPI {

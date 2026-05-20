@@ -3,7 +3,7 @@ import { create } from 'zustand'
 export type Theme = 'midnight' | 'slate' | 'dim' | 'paper' | 'cream'
 const THEMES: Theme[] = ['midnight', 'slate', 'dim', 'paper', 'cream']
 export type AppMode = 'document' | 'settings'
-export type SettingsTab = 'general' | 'launch' | 'mcp' | 'ai'
+export type SettingsTab = 'general' | 'launch' | 'mcp' | 'ai' | 'ai-provider'
 
 interface UIStore {
   sidebarOpen: boolean

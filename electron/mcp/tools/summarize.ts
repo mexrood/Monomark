@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs'
 import { safeResolveInVault, VaultError } from '../paths'
 import { store } from '../../store'
-import { aiManager } from '../../ai/manager'
+import { registry } from '../../ai/registry'
 
 // Cap on the text fed to the local model — small GGUF models have a short
 // context window. Long files are truncated and the result flags it.
@@ -39,7 +39,7 @@ export async function toolSummarizeFile(args: { path: string }) {
 
   let summary: string
   try {
-    summary = await aiManager.prompt(prompt)
+    summary = await registry.getActive().generate(prompt)
   } catch (err) {
     throw new VaultError(
       'ai_unavailable',

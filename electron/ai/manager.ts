@@ -251,6 +251,11 @@ class AIManager extends EventEmitter {
     this.emitState()
   }
 
+  /** Whether the local provider can serve — AI enabled and a model selected. */
+  isAvailable(): boolean {
+    return this.enabled && this.activeModelId !== null
+  }
+
   /** Run a prompt; lazily (re)loads the active model if it was unloaded. */
   async prompt(text: string): Promise<string> {
     if (!this.enabled) throw new Error('AI is disabled')

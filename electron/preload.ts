@@ -68,6 +68,14 @@ contextBridge.exposeInMainWorld('marrow', {
     onDownloadProgress: (cb: (progress: unknown) => void) =>
       ipcRenderer.on('ai:download-progress', (_event, progress) => cb(progress)),
     offDownloadProgress: () => ipcRenderer.removeAllListeners('ai:download-progress'),
+    // LLM provider abstraction (local + cloud)
+    listProviders: () => ipcRenderer.invoke('ai:listProviders'),
+    getActiveProvider: () => ipcRenderer.invoke('ai:getActiveProvider'),
+    setActiveProvider: (id: string) => ipcRenderer.invoke('ai:setActiveProvider', id),
+    saveApiKey: (providerId: string, key: string) =>
+      ipcRenderer.invoke('ai:saveApiKey', providerId, key),
+    deleteApiKey: (providerId: string) => ipcRenderer.invoke('ai:deleteApiKey', providerId),
+    testProvider: (providerId: string) => ipcRenderer.invoke('ai:testProvider', providerId),
   },
   preview: {
     open: (filePath: string, content: string) =>
