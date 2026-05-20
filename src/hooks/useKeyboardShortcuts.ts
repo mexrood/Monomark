@@ -1,10 +1,30 @@
 import { useEffect } from 'react'
 import { useVaultStore } from '../store/useVaultStore'
 import { useUIStore } from '../store/useUIStore'
+import type { EditorState } from '@tiptap/pm/state'
 import { useRelatedStore } from '../store/useRelatedStore'
 import { editorRegistry } from '../utils/editorRegistry'
-import { blockIdAtCursor } from '../components/Document/RichEditor/RelatedHints'
 import { maybeInitProject } from '../utils/initProject'
+
+/** Block id of the block the cursor sits in, or null. */
+function blockIdAtCursor(state: EditorState): string | null {
+  const blockIdType = state.schema.nodes.blockId
+  if (!blockIdType) return null
+  const { $from } = state.selection
+
+  // Inside a list/task item → the BlockId is the item's last child.
+  for (let d = $from.depth; d >= 1; d--) {
+    const node = $from.node(d)
+    if (node.type.name === 'listItem' || node.type.name === 'taskItem') {
+      const last = node.lastChild
+      return last && last.type === blockIdType ? (last.attrs.bid as string) : null
+    }
+  }
+  // Top-level block → the BlockId is its next sibling.
+  const topIndex = $from.index(0)
+  const next = topIndex + 1 < state.doc.childCount ? state.doc.child(topIndex + 1) : null
+  return next && next.type === blockIdType ? (next.attrs.bid as string) : null
+}
 
 export function useKeyboardShortcuts() {
   useEffect(() => {
