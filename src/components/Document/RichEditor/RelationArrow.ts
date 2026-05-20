@@ -140,9 +140,13 @@ function buildDecorations(state: EditorState): DecorationSet {
     if (!bid) return true
     const relations = relationsCache.get(bid)
     if (relations && relations.length > 0) {
+      // Place the widget INSIDE the preceding content block at its very end
+      // (position `pos - 1`, side +1) so the arrow renders inline with the
+      // block's text rather than between blocks on its own line.
+      const insertPos = Math.max(0, pos - 1)
       decos.push(
-        Decoration.widget(pos, () => makeArrowDOM(bid), {
-          side: -1,
+        Decoration.widget(insertPos, () => makeArrowDOM(bid), {
+          side: 1,
           key: `arrow:${bid}:${relations.length}`,
         }),
       )
