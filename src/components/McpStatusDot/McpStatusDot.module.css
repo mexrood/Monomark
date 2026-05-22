@@ -1,13 +1,12 @@
 .wrapper {
   position: fixed;
-  bottom: 14px;
+  bottom: 10px;
   right: 14px;
   z-index: 200;
-  width: 10px;
-  height: 10px;
 }
 
 .dot {
+  position: relative;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -17,6 +16,7 @@
   display: block;
   background: var(--text-tertiary);
   transition: background 200ms ease, transform 120ms ease;
+  z-index: 2;
 }
 
 .dot[data-status="on"] {
