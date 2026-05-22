@@ -93,6 +93,25 @@ interface MarrowMcpAPI {
   offStatusChange(): void
   onNewCall(cb: (call: McpAuditEntry) => void): void
   offNewCall(): void
+  getStatsToday(): Promise<McpStats>
+  getStatsLifetime(): Promise<McpStats>
+  getStreak(): Promise<number>
+  onActivity(cb: (event: McpActivityEvent) => void): void
+  offActivity(): void
+}
+
+export interface McpActivityEvent {
+  type: 'reading' | 'distilling' | 'done'
+  toolName: string
+  filePath?: string
+  tokensSaved: number
+  timestamp: number
+}
+
+export interface McpStats {
+  tokensSaved: number
+  filesRead: number
+  callCount: number
 }
 
 export interface McpAuditEntry {

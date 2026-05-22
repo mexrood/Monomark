@@ -11,6 +11,8 @@ import { toolFindRelated } from './find-related'
 import { toolGetBlock } from './get-block'
 import { withAudit } from '../audit'
 import { VaultError } from '../paths'
+import { insertMcpActivity } from '../../blocks/db'
+import { BrowserWindow } from 'electron'
 
 export interface ToolDef {
   name: string
@@ -27,13 +29,50 @@ function mcpError(code: string, message: string) {
   }
 }
 
+function emitActivity(event: { type: string; toolName: string; filePath?: string; tokensSaved: number; timestamp: number }) {
+  BrowserWindow.getAllWindows().forEach(win => {
+    win.webContents.send('mcp:activity', event)
+  })
+}
+
 function wrapHandler(
   name: string,
   fn: (args: Record<string, unknown>) => Promise<unknown>
 ): (args: Record<string, unknown>) => Promise<unknown> {
   return async (args) => {
+    const filePath = typeof args.path === 'string' ? args.path : undefined
+    const now = Date.now()
+    emitActivity({ type: 'reading', toolName: name, filePath, tokensSaved: 0, timestamp: now })
+
     try {
-      return await withAudit(name, args, () => fn(args))
+      const result = await withAudit(name, args, () => fn(args))
+
+      const r = result as { _tokens?: { read: number; returned: number }; distilled?: boolean; isError?: boolean } | null
+      const tokens = r?._tokens
+      const tokensRead = tokens?.read ?? 0
+      const tokensReturned = tokens?.returned ?? 0
+      const tokensSaved = Math.max(0, tokensRead - tokensReturned)
+      const distilled = r?.distilled === true ? 1 : 0
+
+      if (!r?.isError) {
+        insertMcpActivity({
+          tool_name: name,
+          file_path: filePath ?? null,
+          tokens_read: tokensRead,
+          tokens_returned: tokensReturned,
+          tokens_saved: tokensSaved,
+          distilled,
+          created_at: now,
+        })
+      }
+
+      emitActivity({ type: 'done', toolName: name, filePath, tokensSaved, timestamp: Date.now() })
+
+      if (tokens && r && typeof r === 'object') {
+        delete (r as Record<string, unknown>)._tokens
+      }
+
+      return result
     } catch (err: unknown) {
       if (err instanceof VaultError) {
         return mcpError(err.code, err.message)

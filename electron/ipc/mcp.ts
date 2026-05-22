@@ -7,6 +7,7 @@ import {
   installToClaudeDesktop,
   buildClaudeCodeCommand,
 } from '../mcp/clientConfig'
+import { getMcpStatsSince, getMcpStatsLifetime, getMcpStreak } from '../blocks/db'
 
 export function registerMcpIPC() {
   ipcMain.handle('mcp:getStatus', () => {
@@ -75,6 +76,20 @@ export function registerMcpIPC() {
         error: status.error,
       })
     })
+  })
+
+  ipcMain.handle('mcp:getStatsToday', () => {
+    const now = new Date()
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime()
+    return getMcpStatsSince(midnight)
+  })
+
+  ipcMain.handle('mcp:getStatsLifetime', () => {
+    return getMcpStatsLifetime()
+  })
+
+  ipcMain.handle('mcp:getStreak', () => {
+    return getMcpStreak()
   })
 
   // Forward new audit calls to renderer

@@ -63,13 +63,15 @@ export async function toolSmartContext(args: { query?: string; limit?: number })
       sources: [],
       block_count: 0,
       note: 'No semantically relevant blocks found in the vault.',
+      _tokens: { read: 0, returned: 0 },
     })
   }
 
   const sources = [...new Set(blocks.map(b => b.file))]
   const assembled = blocks.map(b => `[${b.file}]\n${b.text}`).join('\n\n')
 
-  // Small context — distillation wouldn't pay for itself.
+  const assembledTokens = Math.ceil(assembled.length / 4)
+
   if (assembled.length <= PASSTHROUGH_CHARS) {
     return store({
       query,
@@ -77,6 +79,7 @@ export async function toolSmartContext(args: { query?: string; limit?: number })
       context: assembled,
       sources,
       block_count: blocks.length,
+      _tokens: { read: assembledTokens, returned: assembledTokens },
     })
   }
 
@@ -90,7 +93,7 @@ export async function toolSmartContext(args: { query?: string; limit?: number })
   try {
     distilled = await registry.getActive().generate(prompt)
   } catch (err) {
-    // LLM unavailable — degrade to raw blocks rather than failing the call.
+    const fallbackTokens = Math.ceil(Math.min(assembled.length, MAX_DISTILL_CHARS) / 4)
     return store({
       query,
       distilled: false,
@@ -98,11 +101,13 @@ export async function toolSmartContext(args: { query?: string; limit?: number })
       sources,
       block_count: blocks.length,
       note: `Local AI unavailable (${(err as Error).message}); returned raw blocks.`,
+      _tokens: { read: assembledTokens, returned: fallbackTokens },
     })
   }
 
+  const returnedTokens = Math.ceil(distilled.trim().length / 4)
   console.log(
-    `[smart-context] "${query}" → ${blocks.length} blocks → ${distilled.length} chars`
+    `[smart-context] "${query}" → ${blocks.length} blocks → ${distilled.length} chars (saved ~${assembledTokens - returnedTokens} tokens)`
   )
   return store({
     query,
@@ -110,5 +115,6 @@ export async function toolSmartContext(args: { query?: string; limit?: number })
     context: distilled.trim(),
     sources,
     block_count: blocks.length,
+    _tokens: { read: assembledTokens, returned: returnedTokens },
   })
 }

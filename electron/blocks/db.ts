@@ -71,6 +71,18 @@ const SCHEMA = `
   CREATE INDEX IF NOT EXISTS idx_relations_from
     ON relations(block_id_from)
     WHERE useful = 1;
+
+  CREATE TABLE IF NOT EXISTS mcp_activity (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    tool_name       TEXT NOT NULL,
+    file_path       TEXT,
+    tokens_read     INTEGER NOT NULL,
+    tokens_returned INTEGER NOT NULL,
+    tokens_saved    INTEGER NOT NULL,
+    distilled       INTEGER NOT NULL,
+    created_at      INTEGER NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS idx_mcp_activity_created ON mcp_activity(created_at);
 `
 
 /**
@@ -215,6 +227,83 @@ export function upsertFileSummary(file: string, summary: string, hash: string): 
     )
     .run(file, summary, hash, Date.now())
   schedulePersist()
+}
+
+// ── mcp_activity (Token economy) ────────────────────────────────────────────
+
+export interface McpActivityRow {
+  tool_name: string
+  file_path: string | null
+  tokens_read: number
+  tokens_returned: number
+  tokens_saved: number
+  distilled: number
+  created_at: number
+}
+
+export function insertMcpActivity(row: McpActivityRow): void {
+  if (!rawDb) return
+  getDb()
+    .prepare(
+      `INSERT INTO mcp_activity (tool_name, file_path, tokens_read, tokens_returned, tokens_saved, distilled, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(
+      row.tool_name,
+      row.file_path,
+      row.tokens_read,
+      row.tokens_returned,
+      row.tokens_saved,
+      row.distilled,
+      row.created_at
+    )
+  schedulePersist()
+}
+
+export interface McpStats {
+  tokensSaved: number
+  filesRead: number
+  callCount: number
+}
+
+export function getMcpStatsSince(sinceMs: number): McpStats {
+  if (!rawDb) return { tokensSaved: 0, filesRead: 0, callCount: 0 }
+  const row = getDb()
+    .prepare(
+      `SELECT COALESCE(SUM(tokens_saved), 0) AS saved,
+              COUNT(DISTINCT file_path) AS files,
+              COUNT(*) AS calls
+       FROM mcp_activity WHERE created_at >= ?`
+    )
+    .get(sinceMs) as { saved: number; files: number; calls: number } | undefined
+  return {
+    tokensSaved: row?.saved ?? 0,
+    filesRead: row?.files ?? 0,
+    callCount: row?.calls ?? 0,
+  }
+}
+
+export function getMcpStatsLifetime(): McpStats {
+  return getMcpStatsSince(0)
+}
+
+export function getMcpStreak(): number {
+  if (!rawDb) return 0
+  const rows = getDb()
+    .prepare(
+      `SELECT DISTINCT CAST(created_at / 86400000 AS INTEGER) AS day
+       FROM mcp_activity ORDER BY day DESC`
+    )
+    .all() as { day: number }[]
+  if (rows.length === 0) return 0
+  const today = Math.floor(Date.now() / 86400000)
+  if (rows[0].day !== today && rows[0].day !== today - 1) return 0
+  let streak = 1
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i - 1].day - rows[i].day === 1) streak++
+    else break
+  }
+  return streak
 }
 
 export function deleteFileSummary(file: string): void {

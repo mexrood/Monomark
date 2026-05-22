@@ -52,6 +52,12 @@ contextBridge.exposeInMainWorld('marrow', {
     onNewCall: (cb: (call: unknown) => void) =>
       ipcRenderer.on('mcp:new-call', (_event, call) => cb(call)),
     offNewCall: () => ipcRenderer.removeAllListeners('mcp:new-call'),
+    getStatsToday: () => ipcRenderer.invoke('mcp:getStatsToday'),
+    getStatsLifetime: () => ipcRenderer.invoke('mcp:getStatsLifetime'),
+    getStreak: () => ipcRenderer.invoke('mcp:getStreak'),
+    onActivity: (cb: (event: unknown) => void) =>
+      ipcRenderer.on('mcp:activity', (_event, data) => cb(data)),
+    offActivity: () => ipcRenderer.removeAllListeners('mcp:activity'),
     getInstallStatus: () => ipcRenderer.invoke('mcp:getInstallStatus'),
     installToClaudeDesktop: () => ipcRenderer.invoke('mcp:installToClaudeDesktop'),
     getClaudeCodeCommand: () => ipcRenderer.invoke('mcp:getClaudeCodeCommand'),
