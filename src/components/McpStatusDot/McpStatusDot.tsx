@@ -4,7 +4,8 @@ import styles from './McpStatusDot.module.css'
 import { useAppStore } from '../../store/useAppStore'
 import { useUIStore } from '../../store/useUIStore'
 import { Switch } from '../ui/Switch'
-import { McpStatusPill } from './McpStatusPill'
+import { McpStatusPill, formatTokens } from './McpStatusPill'
+import type { McpStats } from '../../types/window'
 
 export function McpStatusDot() {
   const mcpStatus = useAppStore(s => s.mcpStatus)
@@ -14,7 +15,20 @@ export function McpStatusDot() {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const [hovered, setHovered] = useState(false)
+  const [statsToday, setStatsToday] = useState<McpStats | null>(null)
+  const [statsLifetime, setStatsLifetime] = useState<McpStats | null>(null)
+  const [streak, setStreak] = useState(0)
   const wrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const mcp = window.marrow.mcp
+    if (mcp) {
+      mcp.getStatsToday().then(setStatsToday).catch(() => {})
+      mcp.getStatsLifetime().then(setStatsLifetime).catch(() => {})
+      mcp.getStreak().then(setStreak).catch(() => {})
+    }
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -53,6 +67,26 @@ export function McpStatusDot() {
     >
       {open && (
         <div className={styles.popover}>
+          {statsToday && (
+            <>
+              <div className={styles.statsSection}>
+                <div className={styles.statPrimary}>
+                  Saved <span className={styles.statNumber}>{formatTokens(statsToday.tokensSaved)}</span> today
+                </div>
+                {statsLifetime && (
+                  <div className={styles.statSecondary}>
+                    Lifetime: {formatTokens(statsLifetime.tokensSaved)} tokens
+                  </div>
+                )}
+                {streak > 1 && (
+                  <div className={styles.statSecondary}>
+                    {streak}-day streak
+                  </div>
+                )}
+              </div>
+              <div className={styles.popoverDivider} />
+            </>
+          )}
           <div className={styles.popoverRow}>
             <span className={styles.popoverLabel}>Enable MCP server</span>
             <Switch checked={mcpStatus.running} onChange={() => handleToggle()} disabled={busy} />

@@ -83,3 +83,24 @@
   background: var(--border-subtle);
   margin: 4px 2px;
 }
+
+.statsSection {
+  padding: 8px 8px 4px;
+}
+
+.statPrimary {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-family: var(--font-ui);
+}
+
+.statNumber {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.statSecondary {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
