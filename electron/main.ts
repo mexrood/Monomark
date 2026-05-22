@@ -249,6 +249,26 @@ ipcMain.handle('window:isMaximized', (event: IpcMainInvokeEvent) =>
   BrowserWindow.fromWebContents(event.sender)?.isMaximized() ?? false
 )
 
+// ── Zoom controls ────────────────────────────────────────────────────────────
+const ZOOM_MIN = -2
+const ZOOM_MAX = 3
+
+function clampZoom(wc: Electron.WebContents, delta: number) {
+  const current = wc.getZoomLevel()
+  const next = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, current + delta))
+  wc.setZoomLevel(next)
+}
+
+ipcMain.handle('zoom:in', (event: IpcMainInvokeEvent) => {
+  clampZoom(event.sender, 1)
+})
+ipcMain.handle('zoom:out', (event: IpcMainInvokeEvent) => {
+  clampZoom(event.sender, -1)
+})
+ipcMain.handle('zoom:reset', (event: IpcMainInvokeEvent) => {
+  event.sender.setZoomLevel(0)
+})
+
 // ── Preview window ────────────────────────────────────────────────────────────
 
 ipcMain.handle('preview:open', async (_event, { filePath, content }: { filePath: string; content: string }) => {

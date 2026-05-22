@@ -6,6 +6,9 @@ interface MarrowWindowAPI {
   maximize(): Promise<void>
   close(): Promise<void>
   isMaximized(): Promise<boolean>
+  zoomIn(): Promise<void>
+  zoomOut(): Promise<void>
+  zoomReset(): Promise<void>
 }
 
 interface MarrowAppAPI {

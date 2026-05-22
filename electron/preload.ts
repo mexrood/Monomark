@@ -6,6 +6,9 @@ contextBridge.exposeInMainWorld('marrow', {
     maximize: () => ipcRenderer.invoke('window:maximize'),
     close: () => ipcRenderer.invoke('window:close'),
     isMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+    zoomIn: () => ipcRenderer.invoke('zoom:in'),
+    zoomOut: () => ipcRenderer.invoke('zoom:out'),
+    zoomReset: () => ipcRenderer.invoke('zoom:reset'),
   },
   app: {
     getVersion: (): Promise<string> => ipcRenderer.invoke('app:getVersion'),

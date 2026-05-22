@@ -115,6 +115,27 @@ export function useKeyboardShortcuts() {
         if (path) await useVaultStore.getState().openDocument(path)
         return
       }
+
+      // Ctrl/Cmd + 0 — reset zoom
+      if (mod && e.key === '0') {
+        e.preventDefault()
+        window.marrow.window?.zoomReset()
+        return
+      }
+
+      // Ctrl/Cmd + = / + — zoom in
+      if (mod && (e.key === '=' || e.key === '+')) {
+        e.preventDefault()
+        window.marrow.window?.zoomIn()
+        return
+      }
+
+      // Ctrl/Cmd + - — zoom out
+      if (mod && e.key === '-') {
+        e.preventDefault()
+        window.marrow.window?.zoomOut()
+        return
+      }
     }
 
     window.addEventListener('keydown', handler)
