@@ -5,6 +5,8 @@ import type { VaultNode } from '../../types/vault'
 import { useVaultStore } from '../../store/useVaultStore'
 import { useUIStore } from '../../store/useUIStore'
 import { useDragStore } from '../../store/useDragStore'
+import { useAppStore } from '../../store/useAppStore'
+import { useToastStore } from '../../store/useToastStore'
 import styles from './Sidebar.module.css'
 
 export interface ContextMenuState {
@@ -108,7 +110,14 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   const handleDotClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation()
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    const clamped = clampToWindow(rect.right + 4, rect.top, 160, 140)
+    const clamped = clampToWindow(rect.right + 4, rect.top, 160, 200)
+    setContextMenu({ node, x: clamped.x, y: clamped.y })
+  }, [node, setContextMenu])
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const clamped = clampToWindow(e.clientX, e.clientY, 160, 200)
     setContextMenu({ node, x: clamped.x, y: clamped.y })
   }, [node, setContextMenu])
 
@@ -240,6 +249,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
         style={{ paddingLeft, paddingRight: 4 }}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
+        onContextMenu={handleContextMenu}
         draggable={!isRenaming}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
@@ -333,7 +343,9 @@ export const TreeContextMenu: React.FC<TreeContextMenuProps> = ({ menu, onClose 
   const refreshTree = useVaultStore(s => s.refreshTree)
   const closeDocument = useVaultStore(s => s.closeDocument)
   const vaultDoc = useVaultStore(s => s.document)
+  const vaultPath = useVaultStore(s => s.vaultPath)
   const setRenamingPath = useUIStore(s => s.setRenamingPath)
+  const mcpRunning = useAppStore(s => s.mcpStatus.running)
   const menuRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -350,6 +362,23 @@ export const TreeContextMenu: React.FC<TreeContextMenuProps> = ({ menu, onClose 
   const copyPath = act(() => window.marrow.util?.copyToClipboard(menu.node.path))
   const rename = act(() => setRenamingPath(menu.node.path))
 
+  const smartCopy = act(async () => {
+    if (menu.node.kind !== 'file') return
+    if (mcpRunning && vaultPath) {
+      const rel = menu.node.path.replace(/\\/g, '/').replace(
+        vaultPath.replace(/\\/g, '/').replace(/\/?$/, '/'), ''
+      )
+      await navigator.clipboard.writeText(
+        `Прочитай через Monomark MCP документ "${rel}" и используй как контекст.`
+      )
+      useToastStore.getState().success('Copied prompt')
+    } else {
+      const content = await window.marrow.vault.readFile(menu.node.path)
+      await navigator.clipboard.writeText(content)
+      useToastStore.getState().success('Copied content')
+    }
+  })
+
   const deleteFn = act(async () => {
     if (vaultDoc.kind === 'vault' && vaultDoc.path === menu.node.path) closeDocument()
     await window.marrow.vault.delete(menu.node.path)
@@ -364,6 +393,9 @@ export const TreeContextMenu: React.FC<TreeContextMenuProps> = ({ menu, onClose 
       className={styles.contextMenu}
       style={{ position: 'absolute', left: menu.x, top: menu.y }}
     >
+      {menu.node.kind === 'file' && (
+        <button className={styles.contextItem} onClick={smartCopy}>Smart Copy</button>
+      )}
       <button className={styles.contextItem} onClick={showInFolder}>Show in Folder</button>
       <button className={styles.contextItem} onClick={copyPath}>Copy Path</button>
       <button className={styles.contextItem} onClick={rename}>Rename</button>
