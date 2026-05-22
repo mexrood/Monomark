@@ -23,6 +23,7 @@ export const GeneralPanel: React.FC = () => {
   const theme = useUIStore(s => s.theme)
   const setTheme = useUIStore(s => s.setTheme)
   const closeSettings = useUIStore(s => s.closeSettings)
+  const vaultPath = useVaultStore(s => s.vaultPath)
   const version = useAppStore(s => s.version)
   const [updateState, setUpdateState] = useState<UpdateState>({ status: 'idle' })
   const updater = window.marrow.updater
@@ -75,7 +76,13 @@ export const GeneralPanel: React.FC = () => {
       <Section title="Vault">
         <Row
           title="Vault folder"
-          description="The directory where your notes are stored"
+          description={
+            vaultPath ? (
+              <span title={vaultPath} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block', maxWidth: '100%' }}>
+                {vaultPath}
+              </span>
+            ) : 'No vault selected'
+          }
           action={
             <Button
               variant="secondary"
