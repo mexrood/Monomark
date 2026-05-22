@@ -4,6 +4,25 @@
   gap: 2px;
   overflow-y: auto;
   flex: 1;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 140, 140, 0.45) transparent;
+}
+
+.list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.list::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.45);
+  border-radius: 2px;
+}
+
+.list::-webkit-scrollbar-thumb:hover {
+  background: rgba(160, 160, 160, 0.65);
 }
 
 .hint {
