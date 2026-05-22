@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { Bot } from 'lucide-react'
 import styles from './McpStatusPill.module.css'
+import { PillCharacter } from './PillCharacter'
 import type { McpActivityEvent, McpStats } from '../../types/window'
 
 export function formatTokens(n: number): string {
@@ -109,17 +109,15 @@ export function McpStatusPill({ running, state, hovered }: McpStatusPillProps) {
     )
   }
 
+  const bodyColor = pillState === 'distilling' ? '#5b9a6f' : '#E07448'
+
   return (
     <div className={`${styles.pill} ${!visible ? styles.pillHidden : ''}`}>
       <div className={styles.icon}>
-        <PillIcon />
+        <PillCharacter size={16} bodyColor={bodyColor} />
       </div>
       {text}
       <div className={styles.miniDot} data-status={connectionStatus} />
     </div>
   )
-}
-
-export function PillIcon() {
-  return <Bot size={16} strokeWidth={1.5} />
 }
