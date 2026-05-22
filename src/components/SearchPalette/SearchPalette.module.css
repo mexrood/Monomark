@@ -1,4 +1,4 @@
-/* Backdrop — top-anchored so the palette doesn't bounce on result-count change */
+/* Backdrop — vertically centered */
 .backdrop {
   position: fixed;
   inset: 0;
@@ -6,16 +6,17 @@
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding-top: 100px;
+  padding: 10vh 0;
 }
 
 /* Palette panel */
 .palette {
   width: 600px;
   max-width: 92vw;
-  max-height: 480px;
+  height: 480px;
+  max-height: 80vh;
   background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
