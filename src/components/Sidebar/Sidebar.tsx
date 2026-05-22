@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react'
-import { FolderPlus, Plus } from 'lucide-react'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
+import { FolderPlus, FileText, Plus } from 'lucide-react'
 import { useUIStore } from '../../store/useUIStore'
 import { useVaultStore } from '../../store/useVaultStore'
 import { useDialogStore } from '../../store/useDialogStore'
@@ -22,6 +22,41 @@ function findFolder(nodes: VaultNode[], folderPath: string): VaultFolder | null 
     }
   }
   return null
+}
+
+const NewMenu: React.FC<{ onNewNote: () => void; onNewFolder: () => void }> = ({ onNewNote, onNewFolder }) => {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    }
+    window.addEventListener('mousedown', handler)
+    return () => window.removeEventListener('mousedown', handler)
+  }, [open])
+
+  return (
+    <div ref={ref} style={{ position: 'relative' }}>
+      <button className={styles.newPill} onClick={() => setOpen(o => !o)}>
+        <Plus size={14} strokeWidth={1.5} />
+        New
+      </button>
+      {open && (
+        <div className={styles.newMenu}>
+          <button className={styles.newMenuItem} onClick={() => { onNewNote(); setOpen(false) }}>
+            <FileText size={14} strokeWidth={1.5} />
+            New Note
+          </button>
+          <button className={styles.newMenuItem} onClick={() => { onNewFolder(); setOpen(false) }}>
+            <FolderPlus size={14} strokeWidth={1.5} />
+            New Folder
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export const Sidebar: React.FC = () => {
@@ -233,16 +268,9 @@ export const Sidebar: React.FC = () => {
           ) : (
           <>
 
-          {/* Top action rows */}
+          {/* New button with dropdown */}
           <div className={styles.topActions}>
-            <button className={styles.newNote} onClick={handleNewNote}>
-              <Plus size={16} strokeWidth={1.5} />
-              New Note
-            </button>
-            <button className={styles.newFolder} onClick={handleNewFolder}>
-              <FolderPlus size={16} strokeWidth={1.5} />
-              New Folder
-            </button>
+            <NewMenu onNewNote={handleNewNote} onNewFolder={handleNewFolder} />
           </div>
 
           {/* Spacer between actions and tree */}
