@@ -1,20 +1,20 @@
 .pill {
   position: absolute;
-  top: calc(100% + 6px);
-  right: -6px;
+  top: 50%;
+  right: 0;
   display: flex;
   align-items: center;
   gap: 10px;
   height: 32px;
-  padding: 0 14px 0 10px;
+  padding: 0 22px 0 10px;
   background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
   white-space: nowrap;
   pointer-events: auto;
-  transform-origin: top right;
+  transform-origin: right center;
+  transform: translateY(-50%) scale(1);
   opacity: 1;
-  transform: translateY(0);
   box-shadow: var(--shadow-popover);
   transition: opacity 180ms ease-out, transform 180ms ease-out;
   z-index: 1;
@@ -22,7 +22,7 @@
 
 .pillHidden {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(-50%) scale(0.3);
   pointer-events: none;
   box-shadow: none;
 }
