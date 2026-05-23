@@ -1,12 +1,12 @@
 .pill {
   position: absolute;
-  right: -3px;
+  right: -6px;
   bottom: -11px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 32px;
-  padding: 0 12px;
+  gap: 10px;
+  height: 34px;
+  padding: 0 14px 0 10px;
   background: var(--bg-chrome);
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
@@ -15,6 +15,7 @@
   transform-origin: right center;
   transform: translateX(0);
   opacity: 1;
+  box-shadow: var(--shadow-popover);
   transition: opacity 180ms ease-out, transform 180ms ease-out;
   z-index: 1;
 }
@@ -23,6 +24,7 @@
   opacity: 0;
   transform: translateX(20px);
   pointer-events: none;
+  box-shadow: none;
 }
 
 .icon {
