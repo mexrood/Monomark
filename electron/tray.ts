@@ -9,7 +9,7 @@ function makeTrayIcon() {
   const isDev = !app.isPackaged
   const iconFile = process.platform === 'win32' ? 'tray.ico' : 'tray.png'
   const iconPath = isDev
-    ? join(__dirname, '../build', process.platform === 'win32' ? 'icon.ico' : 'icons/32x32.png')
+    ? join(__dirname, '../build', iconFile)
     : join(process.resourcesPath, iconFile)
 
   const img = nativeImage.createFromPath(iconPath)

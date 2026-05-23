@@ -140,9 +140,9 @@ linux:
 
 # ── Extra resources (available at runtime via process.resourcesPath) ──────────
 extraResources:
-  - from: build/icon.ico
+  - from: build/tray.ico
     to: tray.ico
-  - from: build/icons/32x32.png
+  - from: build/tray.png
     to: tray.png
 
 # ── Auto-update ───────────────────────────────────────────────────────────────
