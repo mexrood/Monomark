@@ -4,16 +4,11 @@
   gap: 2px;
   overflow-y: auto;
   flex: 1;
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-.list:hover {
-  scrollbar-color: rgba(140, 140, 140, 0.45) transparent;
+  scrollbar-width: none;
 }
 
 .list::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 
 .list::-webkit-scrollbar-track {
@@ -21,17 +16,10 @@
 }
 
 .list::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 2px;
-  transition: background 150ms;
-}
-
-.list:hover::-webkit-scrollbar-thumb {
   background: rgba(140, 140, 140, 0.45);
-}
-
-.list::-webkit-scrollbar-thumb:hover {
-  background: rgba(160, 160, 160, 0.65);
+  background-clip: padding-box;
+  border-right: 4px solid transparent;
+  border-radius: 4px;
 }
 
 .hint {

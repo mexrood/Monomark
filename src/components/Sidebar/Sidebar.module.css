@@ -173,16 +173,11 @@
   flex-direction: column;
   gap: 1px;
   padding-bottom: var(--space-4);
-  scrollbar-width: thin;
-  scrollbar-color: transparent transparent;
-}
-
-.tree:hover {
-  scrollbar-color: rgba(140, 140, 140, 0.45) transparent;
+  scrollbar-width: none;
 }
 
 .tree::-webkit-scrollbar {
-  width: 4px;
+  width: 8px;
 }
 
 .tree::-webkit-scrollbar-track {
@@ -190,17 +185,10 @@
 }
 
 .tree::-webkit-scrollbar-thumb {
-  background: transparent;
-  border-radius: 2px;
-  transition: background 150ms;
-}
-
-.tree:hover::-webkit-scrollbar-thumb {
   background: rgba(140, 140, 140, 0.45);
-}
-
-.tree::-webkit-scrollbar-thumb:hover {
-  background: rgba(160, 160, 160, 0.65);
+  background-clip: padding-box;
+  border-right: 4px solid transparent;
+  border-radius: 4px;
 }
 
 /* ── TreeNode styles ── */
