@@ -32,6 +32,7 @@
   flex-direction: column;
   gap: 2px;
   flex-shrink: 0;
+  margin-bottom: 6px;
 }
 
 .newPill {
@@ -173,6 +174,10 @@
   gap: 1px;
   padding-bottom: var(--space-4);
   scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.tree:hover {
   scrollbar-color: rgba(140, 140, 140, 0.45) transparent;
 }
 
@@ -185,8 +190,13 @@
 }
 
 .tree::-webkit-scrollbar-thumb {
-  background: rgba(140, 140, 140, 0.45);
+  background: transparent;
   border-radius: 2px;
+  transition: background 150ms;
+}
+
+.tree:hover::-webkit-scrollbar-thumb {
+  background: rgba(140, 140, 140, 0.45);
 }
 
 .tree::-webkit-scrollbar-thumb:hover {
