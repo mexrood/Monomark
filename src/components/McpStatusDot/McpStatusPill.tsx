@@ -12,12 +12,10 @@ export function formatTokens(n: number): string {
 type PillState = 'hidden' | 'reading' | 'distilling' | 'done' | 'hover'
 
 interface McpStatusPillProps {
-  running: boolean
-  state: string
   hovered: boolean
 }
 
-export function McpStatusPill({ running, state, hovered }: McpStatusPillProps) {
+export function McpStatusPill({ hovered }: McpStatusPillProps) {
   const [pillState, setPillState] = useState<PillState>('hidden')
   const [savedTokens, setSavedTokens] = useState(0)
   const [todayTokens, setTodayTokens] = useState<number | null>(null)
@@ -84,10 +82,6 @@ export function McpStatusPill({ running, state, hovered }: McpStatusPillProps) {
     }
   }, [hovered, pillState, clearCollapse, scheduleCollapse])
 
-  const connectionStatus = !running
-    ? 'off'
-    : state === 'starting' ? 'reconnecting' : 'on'
-
   const visible = pillState !== 'hidden'
 
   let text: React.ReactNode
@@ -117,7 +111,6 @@ export function McpStatusPill({ running, state, hovered }: McpStatusPillProps) {
         <PillCharacter size={16} bodyColor={bodyColor} />
       </div>
       {text}
-      <div className={styles.miniDot} data-status={connectionStatus} />
     </div>
   )
 }

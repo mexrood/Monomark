@@ -101,7 +101,7 @@ export function McpStatusDot() {
           </button>
         </div>
       )}
-      <McpStatusPill running={mcpStatus.running} state={mcpStatus.state} hovered={hovered && !open} />
+      <McpStatusPill hovered={hovered && !open} />
       <button
         className={styles.dot}
         data-status={mcpStatus.running ? 'on' : 'off'}
