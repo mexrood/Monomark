@@ -70,6 +70,26 @@ export const RichEditor: React.FC = () => {
       },
 
       editorProps: {
+        // ── Normalize pasted HTML from messengers ────────────────────────
+        // Telegram, WhatsApp, Slack wrap lines in nested <div>/<br>
+        // instead of clean <p> blocks. When the user later converts these
+        // paragraphs to task items, the leftover block elements break
+        // TaskItem layout (checkbox on a separate line from text).
+        // Fix: flatten <div> → <p> and <br> → paragraph breaks.
+        transformPastedHTML(html: string) {
+          let cleaned = html
+          // <br> → paragraph break
+          cleaned = cleaned.replace(/<br\s*\/?>\s*/gi, '</p><p>')
+          // </div><div> → paragraph break
+          cleaned = cleaned.replace(/<\/div>\s*<div[^>]*>/gi, '</p><p>')
+          // Remaining <div ...> → <p>, </div> → </p>
+          cleaned = cleaned.replace(/<div[^>]*>/gi, '<p>')
+          cleaned = cleaned.replace(/<\/div>/gi, '</p>')
+          // Remove empty paragraphs
+          cleaned = cleaned.replace(/<p>\s*<\/p>/gi, '')
+          return cleaned
+        },
+
         // ── Image paste ──────────────────────────────────────────────────
         handlePaste(view, event) {
           const items = event.clipboardData?.items
