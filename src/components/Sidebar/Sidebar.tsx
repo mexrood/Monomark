@@ -75,6 +75,16 @@ export const Sidebar: React.FC = () => {
   // Drag & drop state (transient UI)
   const [draggingPath, setDraggingPath] = useState<string | null>(null)
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null)
+  const [treeScrolled, setTreeScrolled] = useState(false)
+  const treeRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const el = treeRef.current
+    if (!el) return
+    const onScroll = () => setTreeScrolled(el.scrollTop > 0)
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [appMode])
 
   const isExternal = document.kind === 'external'
 
@@ -275,8 +285,8 @@ export const Sidebar: React.FC = () => {
 
           {/* Spacer between actions and tree */}
           <div className={styles.sectionLabel} />
-          <div className={styles.treeWrap}>
-          <div className={styles.tree}>
+          <div className={`${styles.treeWrap} ${treeScrolled ? styles.treeWrapScrolled : ''}`}>
+          <div className={styles.tree} ref={treeRef}>
               {tree.length === 0 ? (
                 <div style={{ padding: '8px 12px', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
                   {vaultPath ? 'Vault is empty' : 'No vault selected'}
