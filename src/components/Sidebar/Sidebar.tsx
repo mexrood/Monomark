@@ -275,6 +275,7 @@ export const Sidebar: React.FC = () => {
 
           {/* Spacer between actions and tree */}
           <div className={styles.sectionLabel} />
+          <div className={styles.treeWrap}>
           <div className={styles.tree}>
               {tree.length === 0 ? (
                 <div style={{ padding: '8px 12px', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' }}>
@@ -298,6 +299,7 @@ export const Sidebar: React.FC = () => {
                 ))
               )}
             </div>
+          </div>
 
           </>
           )}
