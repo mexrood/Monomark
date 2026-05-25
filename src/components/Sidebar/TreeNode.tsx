@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import ReactDOM from 'react-dom'
-import { ChevronRight, Folder, FolderOpen, FileText, MoreVertical, Plus } from 'lucide-react'
+import { ChevronRight, ChevronDown, Folder, FolderOpen, FileText, MoreVertical, Plus } from 'lucide-react'
 import type { VaultNode } from '../../types/vault'
 import { useVaultStore } from '../../store/useVaultStore'
 import { useUIStore } from '../../store/useUIStore'
@@ -267,24 +267,28 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
         onDrop={handleDrop}
         onDragEnd={onDragEnd}
       >
-        {/* Chevron (folders only) */}
+        {/* Folder: icon swaps to chevron on hover (Notion-style) */}
         {node.kind === 'folder' ? (
-          <span className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ''}`}>
-            <ChevronRight size={12} strokeWidth={1.5} />
+          <span className={styles.folderIconSlot}>
+            <span className={styles.folderIconRest}>
+              {isOpen
+                ? <FolderOpen size={15} strokeWidth={1.5} />
+                : <Folder size={15} strokeWidth={1.5} />}
+            </span>
+            <span className={styles.folderIconHover}>
+              {isOpen
+                ? <ChevronDown size={14} strokeWidth={1.5} />
+                : <ChevronRight size={14} strokeWidth={1.5} />}
+            </span>
           </span>
         ) : (
-          <span style={{ width: 16, flexShrink: 0 }} />
+          <>
+            <span style={{ width: 16, flexShrink: 0 }} />
+            <span className={styles.nodeIcon}>
+              <FileText size={14} strokeWidth={1.5} />
+            </span>
+          </>
         )}
-
-        {/* File / folder icon */}
-        <span className={styles.nodeIcon}>
-          {node.kind === 'folder'
-            ? (isOpen
-                ? <FolderOpen size={15} strokeWidth={1.5} />
-                : <Folder size={15} strokeWidth={1.5} />)
-            : <FileText size={14} strokeWidth={1.5} />
-          }
-        </span>
 
         {isRenaming ? (
           <input

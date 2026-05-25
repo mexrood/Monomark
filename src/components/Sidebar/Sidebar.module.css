@@ -221,19 +221,43 @@
   opacity: 0.55;
 }
 
-.chevron {
+/* Notion-style folder icon: rest shows folder, hover shows chevron */
+.folderIconSlot {
+  position: relative;
   flex-shrink: 0;
-  color: var(--text-tertiary);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 16px;
   height: 16px;
-  transition: transform var(--transition-fast);
+  margin-right: 1px;
 }
 
-.chevronOpen {
-  transform: rotate(90deg);
+.folderIconRest,
+.folderIconHover {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  transition: opacity 120ms ease;
+}
+
+.folderIconRest {
+  opacity: 1;
+}
+
+.folderIconHover {
+  opacity: 0;
+}
+
+.treeRow:hover .folderIconRest {
+  opacity: 0;
+}
+
+.treeRow:hover .folderIconHover {
+  opacity: 1;
+  color: var(--text-secondary);
 }
 
 .nodeIcon {
