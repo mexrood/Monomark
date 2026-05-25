@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { PanelLeft, Menu, ArrowLeft, Search } from 'lucide-react'
+import { PanelLeft, PanelLeftClose, Menu, ArrowLeft, Search } from 'lucide-react'
 import styles from './TitleBar.module.css'
 import { useUIStore } from '../../store/useUIStore'
 import { useVaultStore } from '../../store/useVaultStore'
@@ -164,7 +164,10 @@ export const TitleBar: React.FC<TitleBarProps> = ({ onOpenSettings }) => {
             tabIndex={-1}
             style={isExternal ? { display: 'none' } : undefined}
           >
-            <PanelLeft size={16} strokeWidth={1.5} />
+            {sidebarOpen
+              ? <PanelLeft size={16} strokeWidth={1.5} />
+              : <PanelLeftClose size={16} strokeWidth={1.5} />
+            }
           </button>
         )}
 
