@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import ReactDOM from 'react-dom'
-import { ChevronRight, Folder, FolderOpen, FileText, MoreVertical } from 'lucide-react'
+import { ChevronRight, Folder, FolderOpen, FileText, MoreVertical, Plus } from 'lucide-react'
 import type { VaultNode } from '../../types/vault'
 import { useVaultStore } from '../../store/useVaultStore'
 import { useUIStore } from '../../store/useUIStore'
@@ -113,6 +113,16 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
     const clamped = clampToWindow(rect.right + 4, rect.top, 160, 200)
     setContextMenu({ node, x: clamped.x, y: clamped.y })
   }, [node, setContextMenu])
+
+  const handleQuickAdd = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (node.kind !== 'folder') return
+    const path = await window.marrow.vault.createFile(node.path, 'Untitled')
+    await refreshTree()
+    if (!expandedFolders.has(node.path)) toggleFolder(node.path)
+    await useVaultStore.getState().openDocument(path)
+    setRenamingPath(path)
+  }, [node, refreshTree, expandedFolders, toggleFolder, setRenamingPath])
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -292,6 +302,15 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
             <span className={`${styles.nodeName} ${node.kind === 'folder' ? styles.nodeNameFolder : ''}`}>
               {displayName(node)}
             </span>
+            {node.kind === 'folder' && (
+              <button
+                className={styles.addButton}
+                onClick={handleQuickAdd}
+                title="New note in folder"
+              >
+                <Plus size={14} strokeWidth={1.5} />
+              </button>
+            )}
             <button
               className={styles.dotButton}
               onClick={handleDotClick}
