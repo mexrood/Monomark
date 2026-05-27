@@ -199,18 +199,21 @@ fn node_mtime(n: &VaultNode) -> f64 {
 // ── Commands ─────────────────────────────────────────────────────────────────
 
 #[tauri::command]
-pub async fn pick_vault_folder(app: AppHandle) -> Result<Option<String>, AppError> {
+pub fn pick_vault_folder(app: AppHandle) -> Result<Option<String>, AppError> {
     use tauri_plugin_dialog::DialogExt;
-    let folder = app.dialog().file().blocking_pick_folder();
+    log::info!("pick_vault_folder: opening dialog");
+    let folder = app.dialog().file().set_title("Choose Vault Folder").blocking_pick_folder();
+    log::info!("pick_vault_folder: result = {:?}", folder.as_ref().map(|p| p.to_string()));
     Ok(folder.map(|p| p.to_string()))
 }
 
 #[tauri::command]
-pub async fn pick_file(app: AppHandle) -> Result<Option<String>, AppError> {
+pub fn pick_file(app: AppHandle) -> Result<Option<String>, AppError> {
     use tauri_plugin_dialog::DialogExt;
     let file = app
         .dialog()
         .file()
+        .set_title("Open File")
         .add_filter("Markdown", &["md", "markdown"])
         .add_filter("Text", &["txt"])
         .add_filter("All Files", &["*"])
