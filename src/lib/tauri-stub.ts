@@ -1,8 +1,13 @@
-// Minimal stub so the React app can render inside Tauri without crashing.
-// Phase 2 will replace these stubs with real Tauri invoke() calls.
+// Tauri runtime bridge: provides window.marrow API backed by Tauri invoke().
+// Phase 2 will extend this with vault, watcher, and other commands.
 
 export function installTauriStub() {
   if (window.marrow) return
+
+  const isTauri = '__TAURI__' in window
+  const invoke = isTauri
+    ? window.__TAURI__!.core.invoke
+    : (async () => undefined) as <T = void>(_cmd: string, _args?: Record<string, unknown>) => Promise<T>
 
   const noop = async () => {}
   const noopBool = async () => false
@@ -11,10 +16,10 @@ export function installTauriStub() {
 
   window.marrow = {
     window: {
-      minimize: noop,
-      maximize: noop,
-      close: noop,
-      isMaximized: noopBool,
+      minimize: () => invoke('minimize_window'),
+      maximize: () => invoke('toggle_maximize'),
+      close: () => invoke('close_window'),
+      isMaximized: () => invoke<boolean>('is_maximized'),
       zoomIn: noop,
       zoomOut: noop,
       zoomReset: noop,
@@ -25,13 +30,20 @@ export function installTauriStub() {
       setAutostartEnabled: noop,
       quit: noop,
       showWindow: noop,
-      setTheme: noop,
+      setTheme: async (theme: string) => {
+        await invoke('set_setting', { key: 'theme', value: theme })
+      },
     },
     vault: {
       pickVaultFolder: noopNull,
       pickFile: noopNull,
-      getVaultPath: noopNull,
-      setVaultPath: noop,
+      getVaultPath: async () => {
+        const val = await invoke<string | null>('get_setting', { key: 'vaultPath' })
+        return val
+      },
+      setVaultPath: async (path: string) => {
+        await invoke('set_setting', { key: 'vaultPath', value: path })
+      },
       listTree: async () => [],
       readFile: noopStr,
       writeFile: noop,
@@ -49,5 +61,15 @@ export function installTauriStub() {
       importFile: async () => ({ ok: false as const, reason: 'no-vault' as const }),
       getRelationsForBlock: async () => [],
     },
+  }
+}
+
+declare global {
+  interface Window {
+    __TAURI__?: {
+      core: {
+        invoke: <T = void>(cmd: string, args?: Record<string, unknown>) => Promise<T>
+      }
+    }
   }
 }
