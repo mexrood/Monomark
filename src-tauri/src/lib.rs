@@ -1,6 +1,8 @@
 mod commands;
 mod error;
 
+use std::sync::Mutex;
+
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::TrayIconBuilder,
@@ -11,6 +13,8 @@ use tauri::{
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_dialog::init())
+        .manage(Mutex::new(commands::watcher::WatcherState::new()))
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -67,13 +71,37 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            // Window
             commands::window::minimize_window,
             commands::window::toggle_maximize,
             commands::window::close_window,
             commands::window::is_maximized,
+            // Settings
             commands::settings::get_setting,
             commands::settings::set_setting,
             commands::settings::get_all_settings,
+            // Vault
+            commands::vault::pick_vault_folder,
+            commands::vault::pick_file,
+            commands::vault::vault_get_path,
+            commands::vault::vault_set_path,
+            commands::vault::list_tree,
+            commands::vault::read_file,
+            commands::vault::write_file,
+            commands::vault::create_file,
+            commands::vault::create_folder,
+            commands::vault::rename_file,
+            commands::vault::delete_file,
+            commands::vault::file_exists,
+            commands::vault::is_inside_vault,
+            commands::vault::move_file,
+            commands::vault::set_folder_order,
+            commands::vault::get_folder_order,
+            commands::vault::vault_file_exists,
+            commands::vault::write_binary,
+            // Watcher
+            commands::watcher::start_watcher,
+            commands::watcher::stop_watcher,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
