@@ -10,7 +10,11 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "dev": "concurrently -n VITE,ELECTRON -c cyan,yellow \"vite\" \"electron .\"",
+    "dev:vite": "vite",
+    "dev:tauri": "tauri dev",
     "build": "tsc -p tsconfig.node.json && vite build && electron-builder --win",
+    "build:vite": "vite build",
+    "build:tauri": "tauri build",
     "build:x64": "tsc -p tsconfig.node.json && vite build && electron-builder --win --x64",
     "build:dir": "tsc -p tsconfig.node.json && vite build && electron-builder --dir",
     "preview": "vite preview",
@@ -24,6 +28,7 @@
     "electron"
   ],
   "devDependencies": {
+    "@tauri-apps/cli": "^2.11.2",
     "@types/auto-launch": "^5.0.5",
     "@types/express": "^5.0.6",
     "@types/markdown-it": "^14.1.2",
