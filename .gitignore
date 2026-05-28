@@ -30,6 +30,10 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# Tauri build output
+src-tauri/target/
+tauri-build/
+
 # Local-only scratch / planning docs and Claude Code worktrees
 .claude/worktrees/
 MONOMARK_*.md

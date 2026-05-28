@@ -14,7 +14,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(Mutex::new(commands::watcher::WatcherState::new()))
+        .manage(Mutex::new(commands::sidecar::SidecarState::new()))
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -76,6 +78,9 @@ pub fn run() {
             commands::window::toggle_maximize,
             commands::window::close_window,
             commands::window::is_maximized,
+            commands::window::open_preview,
+            commands::window::close_preview,
+            commands::window::preview_open_in_main,
             // Settings
             commands::settings::get_setting,
             commands::settings::set_setting,
@@ -102,6 +107,10 @@ pub fn run() {
             // Watcher
             commands::watcher::start_watcher,
             commands::watcher::stop_watcher,
+            // Sidecar (MCP server)
+            commands::sidecar::start_sidecar,
+            commands::sidecar::stop_sidecar,
+            commands::sidecar::sidecar_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

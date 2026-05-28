@@ -25,26 +25,29 @@ pub fn start_watcher(app: AppHandle, vault_path: String) -> Result<(), AppError>
     state.handle = None;
 
     let app_handle = app.clone();
-    let mut debouncer = new_debouncer(Duration::from_millis(300), move |events: Result<Vec<notify_debouncer_mini::DebouncedEvent>, notify::Error>| {
-        match events {
-            Ok(events) => {
-                let mut tree_changed = false;
-                for event in &events {
-                    if event.kind == DebouncedEventKind::Any {
-                        let path_str = event.path.to_string_lossy().to_string();
-                        let _ = app_handle.emit("vault:file-changed", &path_str);
-                        tree_changed = true;
+    let mut debouncer = new_debouncer(
+        Duration::from_millis(300),
+        move |events: Result<Vec<notify_debouncer_mini::DebouncedEvent>, notify::Error>| {
+            match events {
+                Ok(events) => {
+                    let mut tree_changed = false;
+                    for event in &events {
+                        if event.kind == DebouncedEventKind::Any {
+                            let path_str = event.path.to_string_lossy().to_string();
+                            let _ = app_handle.emit("vault:file-changed", &path_str);
+                            tree_changed = true;
+                        }
+                    }
+                    if tree_changed {
+                        let _ = app_handle.emit("vault:tree-changed", ());
                     }
                 }
-                if tree_changed {
-                    let _ = app_handle.emit("vault:tree-changed", ());
+                Err(e) => {
+                    log::error!("Watcher error: {}", e);
                 }
             }
-            Err(e) => {
-                log::error!("Watcher error: {}", e);
-            }
-        }
-    })
+        },
+    )
     .map_err(|e| AppError::from(e.to_string()))?;
 
     debouncer

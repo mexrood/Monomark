@@ -3,10 +3,13 @@
   "identifier": "default",
   "description": "Minimal permissions for Monomark",
   "windows": [
-    "main"
+    "main",
+    "preview"
   ],
   "permissions": [
     "core:default",
-    "store:default"
+    "store:default",
+    "dialog:default",
+    "updater:default"
   ]
 }

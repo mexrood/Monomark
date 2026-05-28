@@ -11,10 +11,11 @@
   "scripts": {
     "dev": "concurrently -n VITE,ELECTRON -c cyan,yellow \"vite\" \"electron .\"",
     "dev:vite": "vite",
-    "dev:tauri": "tauri dev",
+    "dev:tauri": "npm run build:sidecar && tauri dev",
     "build": "tsc -p tsconfig.node.json && vite build && electron-builder --win",
     "build:vite": "vite build",
-    "build:tauri": "tauri build",
+    "build:sidecar": "node src-tauri/sidecar/build.mjs",
+    "build:tauri": "npm run build:sidecar && tauri build",
     "build:x64": "tsc -p tsconfig.node.json && vite build && electron-builder --win --x64",
     "build:dir": "tsc -p tsconfig.node.json && vite build && electron-builder --dir",
     "preview": "vite preview",

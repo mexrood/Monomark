@@ -45,6 +45,8 @@ export function installTauriStub() {
       setVaultPath: async (path: string) => {
         await safeInvoke('vault_set_path', { path })
         await safeInvoke('start_watcher', { vaultPath: path })
+        // Auto-start MCP sidecar when vault is set
+        safeInvoke('start_sidecar').catch(() => {})
       },
       listTree: () => safeInvoke<any[]>('list_tree'),
       readFile: (absPath: string) => safeInvoke<string>('read_file', { path: absPath }),
@@ -67,6 +69,45 @@ export function installTauriStub() {
       importFile: async () => ({ ok: false as const, reason: 'no-vault' as const }),
       getRelationsForBlock: async () => [],
     },
+    mcp: {
+      getStatus: async () => {
+        const s = await safeInvoke<{ running: boolean; port: number; token: string | null }>('sidecar_status')
+        return {
+          running: s?.running ?? false,
+          port: s?.port ?? 7456,
+          token: s?.token ?? null,
+          state: s?.running ? 'running' : 'stopped',
+          error: null,
+        }
+      },
+      start: async () => {
+        const r = await safeInvoke<{ port: number; token: string }>('start_sidecar')
+        return r ?? { port: 7456, token: '' }
+      },
+      stop: async () => { await safeInvoke('stop_sidecar') },
+      getAuditLog: async () => [],
+      regenerateToken: async () => '',
+      onStatusChange: () => {},
+      offStatusChange: () => {},
+      onNewCall: () => {},
+      offNewCall: () => {},
+      getStatsToday: async () => ({ tokensSaved: 0, filesRead: 0, callCount: 0 }),
+      getStatsLifetime: async () => ({ tokensSaved: 0, filesRead: 0, callCount: 0 }),
+      getStreak: async () => 0,
+      onActivity: () => {},
+      offActivity: () => {},
+    },
+    preview: isTauri ? {
+      open: (filePath: string, content: string) =>
+        safeInvoke('open_preview', { filePath, content }) as Promise<void>,
+      close: () => safeInvoke('close_preview') as Promise<void>,
+      onLoad: (cb: (data: { filePath: string; content: string }) => void) => {
+        listen<{ filePath: string; content: string }>('preview:load', (e) => cb(e.payload))
+      },
+      offLoad: () => {},
+      openInMain: (filePath: string) =>
+        safeInvoke('preview_open_in_main', { filePath }) as Promise<void>,
+    } : undefined,
     watcher: isTauri ? {
       onTreeChange: (cb: () => void) => {
         listen('vault:tree-changed', () => cb())

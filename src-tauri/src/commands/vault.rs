@@ -69,6 +69,20 @@ fn validate_parent_inside(base: &Path, target: &Path) -> Result<(), AppError> {
     Ok(())
 }
 
+/// Require that `target` is inside `vault_path`. Works for both existing and new paths.
+/// For new files, validates the parent directory. For existing files, canonicalizes.
+fn require_inside_vault(app: &AppHandle, target: &Path) -> Result<(), AppError> {
+    let vault_path = get_vault_path(app)?.ok_or_else(|| AppError::from("No vault path set"))?;
+    let base = Path::new(&vault_path);
+
+    if target.exists() {
+        validate_inside(base, target)?;
+    } else {
+        validate_parent_inside(base, target)?;
+    }
+    Ok(())
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 struct FolderOrder {
     version: u32,
@@ -138,8 +152,10 @@ async fn build_tree(dir: &Path) -> Vec<VaultNode> {
     let order_list = read_folder_order(dir).await;
 
     if let Some(order) = order_list {
-        let mut by_name: std::collections::HashMap<String, VaultNode> =
-            nodes.into_iter().map(|n| (node_name(&n).to_string(), n)).collect();
+        let mut by_name: std::collections::HashMap<String, VaultNode> = nodes
+            .into_iter()
+            .map(|n| (node_name(&n).to_string(), n))
+            .collect();
         let mut ordered = Vec::new();
         for name in &order {
             if let Some(node) = by_name.remove(name) {
@@ -202,8 +218,15 @@ fn node_mtime(n: &VaultNode) -> f64 {
 pub fn pick_vault_folder(app: AppHandle) -> Result<Option<String>, AppError> {
     use tauri_plugin_dialog::DialogExt;
     log::info!("pick_vault_folder: opening dialog");
-    let folder = app.dialog().file().set_title("Choose Vault Folder").blocking_pick_folder();
-    log::info!("pick_vault_folder: result = {:?}", folder.as_ref().map(|p| p.to_string()));
+    let folder = app
+        .dialog()
+        .file()
+        .set_title("Choose Vault Folder")
+        .blocking_pick_folder();
+    log::info!(
+        "pick_vault_folder: result = {:?}",
+        folder.as_ref().map(|p| p.to_string())
+    );
     Ok(folder.map(|p| p.to_string()))
 }
 
@@ -243,14 +266,16 @@ pub async fn list_tree(app: AppHandle) -> Result<Vec<VaultNode>, AppError> {
 }
 
 #[tauri::command]
-pub async fn read_file(path: String) -> Result<String, AppError> {
+pub async fn read_file(_app: AppHandle, path: String) -> Result<String, AppError> {
+    // read_file is allowed outside vault (for preview of external files)
     tokio::fs::read_to_string(&path)
         .await
         .map_err(|e| AppError::from(e.to_string()))
 }
 
 #[tauri::command]
-pub async fn write_file(path: String, content: String) -> Result<(), AppError> {
+pub async fn write_file(app: AppHandle, path: String, content: String) -> Result<(), AppError> {
+    require_inside_vault(&app, Path::new(&path))?;
     if let Some(parent) = Path::new(&path).parent() {
         tokio::fs::create_dir_all(parent)
             .await
@@ -262,13 +287,14 @@ pub async fn write_file(path: String, content: String) -> Result<(), AppError> {
 }
 
 #[tauri::command]
-pub async fn create_file(dir: String, name: String) -> Result<String, AppError> {
+pub async fn create_file(app: AppHandle, dir: String, name: String) -> Result<String, AppError> {
     let file_name = if name.ends_with(".md") {
         name
     } else {
         format!("{}.md", name)
     };
     let full_path = Path::new(&dir).join(&file_name);
+    require_inside_vault(&app, &full_path)?;
     tokio::fs::write(&full_path, "")
         .await
         .map_err(|e| AppError::from(e.to_string()))?;
@@ -276,8 +302,9 @@ pub async fn create_file(dir: String, name: String) -> Result<String, AppError> 
 }
 
 #[tauri::command]
-pub async fn create_folder(dir: String, name: String) -> Result<String, AppError> {
+pub async fn create_folder(app: AppHandle, dir: String, name: String) -> Result<String, AppError> {
     let full_path = Path::new(&dir).join(&name);
+    require_inside_vault(&app, &full_path)?;
     tokio::fs::create_dir_all(&full_path)
         .await
         .map_err(|e| AppError::from(e.to_string()))?;
@@ -285,12 +312,15 @@ pub async fn create_folder(dir: String, name: String) -> Result<String, AppError
 }
 
 #[tauri::command]
-pub async fn rename_file(old_path: String, new_name: String) -> Result<String, AppError> {
+pub async fn rename_file(
+    app: AppHandle,
+    old_path: String,
+    new_name: String,
+) -> Result<String, AppError> {
     let old = Path::new(&old_path);
-    let new_path = old
-        .parent()
-        .unwrap_or(Path::new(""))
-        .join(&new_name);
+    require_inside_vault(&app, old)?;
+    let new_path = old.parent().unwrap_or(Path::new("")).join(&new_name);
+    require_inside_vault(&app, &new_path)?;
     tokio::fs::rename(&old, &new_path)
         .await
         .map_err(|e| AppError::from(e.to_string()))?;
@@ -298,7 +328,8 @@ pub async fn rename_file(old_path: String, new_name: String) -> Result<String, A
 }
 
 #[tauri::command]
-pub async fn delete_file(path: String) -> Result<(), AppError> {
+pub async fn delete_file(app: AppHandle, path: String) -> Result<(), AppError> {
+    require_inside_vault(&app, Path::new(&path))?;
     let p = Path::new(&path);
     if p.is_dir() {
         tokio::fs::remove_dir_all(p)
@@ -323,13 +354,20 @@ pub async fn is_inside_vault(app: AppHandle, path: String) -> Result<bool, AppEr
         Some(p) => p,
         None => return Ok(false),
     };
-    let vault_abs = std::fs::canonicalize(&vault_path).unwrap_or_else(|_| PathBuf::from(&vault_path));
+    let vault_abs =
+        std::fs::canonicalize(&vault_path).unwrap_or_else(|_| PathBuf::from(&vault_path));
     let target_abs = std::fs::canonicalize(&path).unwrap_or_else(|_| PathBuf::from(&path));
     Ok(target_abs.starts_with(&vault_abs))
 }
 
 #[tauri::command]
-pub async fn move_file(old_path: String, new_parent_dir: String) -> Result<MoveResult, AppError> {
+pub async fn move_file(
+    app: AppHandle,
+    old_path: String,
+    new_parent_dir: String,
+) -> Result<MoveResult, AppError> {
+    require_inside_vault(&app, Path::new(&old_path))?;
+    require_inside_vault(&app, Path::new(&new_parent_dir))?;
     let name = Path::new(&old_path)
         .file_name()
         .unwrap_or_default()
@@ -353,9 +391,11 @@ pub async fn move_file(old_path: String, new_parent_dir: String) -> Result<MoveR
 
 #[tauri::command]
 pub async fn set_folder_order(
+    app: AppHandle,
     folder_path: String,
     order: Vec<String>,
 ) -> Result<(), AppError> {
+    require_inside_vault(&app, Path::new(&folder_path))?;
     let order_file = Path::new(&folder_path).join(".marrow-order.json");
     let data = FolderOrder { version: 1, order };
     let json = serde_json::to_string_pretty(&data).map_err(|e| AppError::from(e.to_string()))?;
@@ -365,7 +405,11 @@ pub async fn set_folder_order(
 }
 
 #[tauri::command]
-pub async fn get_folder_order(folder_path: String) -> Result<Option<Vec<String>>, AppError> {
+pub async fn get_folder_order(
+    app: AppHandle,
+    folder_path: String,
+) -> Result<Option<Vec<String>>, AppError> {
+    require_inside_vault(&app, Path::new(&folder_path))?;
     Ok(read_folder_order(Path::new(&folder_path)).await)
 }
 
@@ -393,8 +437,7 @@ pub async fn write_binary(
     base64: String,
 ) -> Result<WriteBinaryResult, AppError> {
     use base64::Engine;
-    let vault_path = get_vault_path(&app)?
-        .ok_or_else(|| AppError::from("No vault path set"))?;
+    let vault_path = get_vault_path(&app)?.ok_or_else(|| AppError::from("No vault path set"))?;
     let abs = Path::new(&vault_path).join(&rel_path);
     validate_parent_inside(Path::new(&vault_path), &abs)?;
     if let Some(parent) = abs.parent() {
@@ -408,8 +451,5 @@ pub async fn write_binary(
     tokio::fs::write(&abs, bytes)
         .await
         .map_err(|e| AppError::from(e.to_string()))?;
-    Ok(WriteBinaryResult {
-        ok: true,
-        rel_path,
-    })
+    Ok(WriteBinaryResult { ok: true, rel_path })
 }
