@@ -340,6 +340,11 @@
   color: var(--text-primary);
 }
 
+/* System: split dark/light swatch */
+.swatch[data-theme="system"] .swatchChrome { background: linear-gradient(180deg, #131313 50%, #fafafa 50%); }
+.swatch[data-theme="system"] .swatchCanvas { background: linear-gradient(180deg, #171717 50%, #ffffff 50%); }
+.swatch[data-theme="system"] .swatchText  { color: rgba(255, 255, 255, 0.95); background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.92) 50%); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
 .swatch[data-theme="midnight"] .swatchChrome { background: #131313; }
 .swatch[data-theme="midnight"] .swatchCanvas { background: #171717; }
 .swatch[data-theme="midnight"] .swatchText  { color: rgba(255, 255, 255, 0.95); }

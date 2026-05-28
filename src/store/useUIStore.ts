@@ -1,7 +1,14 @@
 import { create } from 'zustand'
 
-export type Theme = 'midnight' | 'slate' | 'dim' | 'paper' | 'cream'
-const THEMES: Theme[] = ['midnight', 'slate', 'dim', 'paper', 'cream']
+export type Theme = 'system' | 'midnight' | 'slate' | 'dim' | 'paper' | 'cream'
+const THEMES: Theme[] = ['system', 'midnight', 'slate', 'dim', 'paper', 'cream']
+
+/** Resolve 'system' to a concrete theme based on OS preference */
+function resolveTheme(t: Theme): Exclude<Theme, 'system'> {
+  if (t !== 'system') return t
+  const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? true
+  return prefersDark ? 'midnight' : 'paper'
+}
 export type AppMode = 'document' | 'settings'
 export type SettingsTab = 'general' | 'launch' | 'mcp' | 'ai' | 'ai-provider'
 
@@ -36,7 +43,7 @@ function loadTheme(): Theme {
 }
 
 const savedTheme = loadTheme()
-document.documentElement.setAttribute('data-theme', savedTheme)
+document.documentElement.setAttribute('data-theme', resolveTheme(savedTheme))
 
 export const useUIStore = create<UIStore>((set, get) => ({
   sidebarOpen: true,
@@ -53,11 +60,10 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
   setTheme(t) {
     localStorage.setItem('monomark-theme', t)
-    document.documentElement.setAttribute('data-theme', t)
+    document.documentElement.setAttribute('data-theme', resolveTheme(t))
     set({ theme: t })
-    // Persist to electron-store so main.ts can read it at next launch
-    // and set the correct backgroundColor (avoids flash-of-wrong-color)
-    window.marrow.app.setTheme(t).catch(() => {})
+    // Persist to backend so it can read at next launch (avoids flash-of-wrong-color)
+    window.marrow.app.setTheme(resolveTheme(t)).catch(() => {})
   },
 
   setRenamingPath(path) {
@@ -88,3 +94,14 @@ export const useUIStore = create<UIStore>((set, get) => ({
     set({ searchPaletteOpen: false })
   },
 }))
+
+// Listen for OS theme changes — re-resolve when user chose "system"
+window.matchMedia?.('(prefers-color-scheme: dark)')
+  .addEventListener('change', () => {
+    const { theme } = useUIStore.getState()
+    if (theme === 'system') {
+      const resolved = resolveTheme('system')
+      document.documentElement.setAttribute('data-theme', resolved)
+      window.marrow.app.setTheme(resolved).catch(() => {})
+    }
+  })

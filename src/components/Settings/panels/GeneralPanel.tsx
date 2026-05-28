@@ -12,6 +12,7 @@ import { useAppStore } from '../../../store/useAppStore'
 import type { UpdateState } from '../../../types/window'
 
 const THEME_OPTIONS: { id: Theme; name: string }[] = [
+  { id: 'system', name: 'System' },
   { id: 'midnight', name: 'Midnight' },
   { id: 'slate', name: 'Slate' },
   { id: 'dim', name: 'Dim' },
