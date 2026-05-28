@@ -149,7 +149,11 @@ const UpdatesCard: React.FC<{ state: UpdateState }> = ({ state }) => {
   )
 }
 
-const checkUpdates = () => void window.marrow.updater?.check()
+const checkUpdates = () => {
+  window.marrow.updater?.check().catch((err: unknown) => {
+    console.error('[updater] unhandled check error:', err)
+  })
+}
 
 function checkButton(label: string): React.ReactNode {
   return (

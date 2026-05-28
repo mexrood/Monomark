@@ -212,9 +212,11 @@ function createUpdaterBridge() {
     getState: async () => state,
 
     check: async (): Promise<UpdateState> => {
+      console.log('[updater] check: starting')
       emit({ status: 'checking' })
       try {
         const update = await checkUpdate()
+        console.log('[updater] check: result', update ? `v${update.version}` : 'up-to-date')
         if (!update) {
           const s: UpdateState = { status: 'up-to-date', version: '', lastChecked: Date.now() }
           emit(s)
@@ -230,7 +232,9 @@ function createUpdaterBridge() {
         emit(s)
         return s
       } catch (err) {
-        const s: UpdateState = { status: 'error', message: String(err) }
+        console.error('[updater] check failed:', err)
+        const msg = err instanceof Error ? err.message : String(err)
+        const s: UpdateState = { status: 'error', message: msg }
         emit(s)
         return s
       }
