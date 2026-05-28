@@ -34,6 +34,10 @@ Thumbs.db
 src-tauri/target/
 tauri-build/
 
+# Tauri signing keys (private key — NEVER commit)
+src-tauri/.tauri-key
+src-tauri/.tauri-key.pub
+
 # Local-only scratch / planning docs and Claude Code worktrees
 .claude/worktrees/
 MONOMARK_*.md

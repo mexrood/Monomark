@@ -5,6 +5,8 @@
 
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
+import { check as checkUpdate } from '@tauri-apps/plugin-updater'
+import type { UpdateState } from '../types/window'
 
 const isTauri = '__TAURI_INTERNALS__' in window
 
@@ -188,5 +190,80 @@ export function installTauriStub() {
       },
       offFileContentChange: () => {},
     } : undefined,
+    updater: isTauri ? createUpdaterBridge() : undefined,
+  }
+}
+
+// ── Tauri updater bridge ─────────────────────────────────────────────────────
+// Translates @tauri-apps/plugin-updater into the MarrowUpdaterAPI shape
+// so GeneralPanel.tsx works identically on both Electron and Tauri.
+
+function createUpdaterBridge() {
+  let state: UpdateState = { status: 'idle' }
+  let listener: ((s: UpdateState) => void) | null = null
+  let pendingUpdate: Awaited<ReturnType<typeof checkUpdate>> | null = null
+
+  const emit = (next: UpdateState) => {
+    state = next
+    listener?.(state)
+  }
+
+  return {
+    getState: async () => state,
+
+    check: async (): Promise<UpdateState> => {
+      emit({ status: 'checking' })
+      try {
+        const update = await checkUpdate()
+        if (!update) {
+          const s: UpdateState = { status: 'up-to-date', version: '', lastChecked: Date.now() }
+          emit(s)
+          return s
+        }
+        pendingUpdate = update
+        const s: UpdateState = {
+          status: 'available',
+          version: update.version,
+          releaseNotes: update.body ?? '',
+          releaseDate: update.date ?? '',
+        }
+        emit(s)
+        return s
+      } catch (err) {
+        const s: UpdateState = { status: 'error', message: String(err) }
+        emit(s)
+        return s
+      }
+    },
+
+    download: async () => {
+      if (!pendingUpdate) return
+      const version = pendingUpdate.version
+      let transferred = 0
+      let total = 0
+      emit({ status: 'downloading', version, percent: 0, transferred: 0, total: 0, bytesPerSecond: 0 })
+
+      await pendingUpdate.download((event) => {
+        if (event.event === 'Started') {
+          total = event.data.contentLength ?? 0
+        } else if (event.event === 'Progress') {
+          transferred += event.data.chunkLength
+          const percent = total > 0 ? Math.round((transferred / total) * 100) : 0
+          emit({ status: 'downloading', version, percent, transferred, total, bytesPerSecond: 0 })
+        } else if (event.event === 'Finished') {
+          emit({ status: 'downloaded', version })
+        }
+      })
+    },
+
+    install: async () => {
+      if (!pendingUpdate) return
+      emit({ status: 'installing' })
+      await pendingUpdate.install()
+      // Tauri restarts the app automatically after install
+    },
+
+    onStateChange: (cb: (s: UpdateState) => void) => { listener = cb },
+    offStateChange: () => { listener = null },
   }
 }

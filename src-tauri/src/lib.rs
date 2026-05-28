@@ -4,6 +4,7 @@ mod error;
 use std::sync::Mutex;
 
 use tauri::{
+    image::Image,
     menu::{MenuBuilder, MenuItemBuilder},
     tray::TrayIconBuilder,
     Manager,
@@ -31,16 +32,15 @@ pub fn run() {
             let quit = MenuItemBuilder::with_id("quit", "Quit").build(app)?;
             let menu = MenuBuilder::new(app).items(&[&show, &quit]).build()?;
 
-            let icon = app
-                .default_window_icon()
-                .cloned()
-                .expect("default icon must be set in tauri.conf.json");
+            // Tray icon: use dedicated tray PNG (chevron only, no background)
+            let tray_icon = Image::from_bytes(include_bytes!("../icons/tray.png"))
+                .expect("tray.png must exist in icons/");
 
             // ── Migrate MCP token to OS keychain ────────────────────────
             let _token = commands::keychain::ensure_mcp_token_in_keychain(app.handle());
 
             let _tray = TrayIconBuilder::new()
-                .icon(icon)
+                .icon(tray_icon)
                 .menu(&menu)
                 .tooltip("Monomark")
                 .on_menu_event(|app, event| match event.id().as_ref() {
