@@ -118,6 +118,10 @@ pub fn run() {
             commands::keychain::store_secret,
             commands::keychain::get_secret,
             commands::keychain::delete_secret,
+            // Claude integration
+            commands::claude_integration::install_to_claude_desktop,
+            commands::claude_integration::get_claude_desktop_status,
+            commands::claude_integration::get_claude_code_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -111,6 +111,18 @@ export function installTauriStub() {
       getStreak: async () => 0,
       onActivity: () => {},
       offActivity: () => {},
+      // Claude integration — write to Claude Desktop config / generate CLI command
+      installToClaudeDesktop: async () => {
+        return await safeInvoke<{ ok: boolean; error?: string }>('install_to_claude_desktop')
+          ?? { ok: false, error: 'invoke failed' }
+      },
+      getInstallStatus: async () => {
+        return await safeInvoke<{ status: string }>('get_claude_desktop_status')
+          ?? { status: 'not_installed' }
+      },
+      getClaudeCodeCommand: async () => {
+        return await safeInvoke<string>('get_claude_code_command') ?? ''
+      },
     },
     ai: {
       // Minimal AI stub — no local model support in Tauri yet,

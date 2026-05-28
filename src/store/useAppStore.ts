@@ -93,9 +93,15 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const { running } = get().mcpStatus
     if (running) {
       await window.marrow.mcp.stop()
+      set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'disabled' } }))
     } else {
-      const result = await window.marrow.mcp.start()
-      set(s => ({ mcpStatus: { ...s.mcpStatus, port: result.port, token: result.token, state: 'running' } }))
+      try {
+        const result = await window.marrow.mcp.start()
+        set(s => ({ mcpStatus: { ...s.mcpStatus, running: true, port: result.port, token: result.token, state: 'running' } }))
+      } catch (err) {
+        console.error('[MCP] Failed to start:', err)
+        set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'error', error: String(err) } }))
+      }
     }
   },
 }))

@@ -46,7 +46,11 @@ fn find_sidecar(app: &AppHandle) -> Result<std::path::PathBuf, AppError> {
             .and_then(|p| p.parent().map(|d| d.join("sidecar.js"))),
         // Production: Tauri resource_dir (macOS .app bundle)
         app.path().resource_dir().ok().map(|d| d.join("sidecar.js")),
-        // Dev: src-tauri/binaries/
+        // Dev (Tauri): cwd is src-tauri/
+        std::env::current_dir()
+            .ok()
+            .map(|d| d.join("binaries").join("sidecar.js")),
+        // Dev (from project root)
         std::env::current_dir()
             .ok()
             .map(|d| d.join("src-tauri").join("binaries").join("sidecar.js")),

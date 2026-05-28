@@ -174,7 +174,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   }, [node, onDragStart])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    const types = e.dataTransfer.types
+    const types = Array.from(e.dataTransfer.types)
     // Use React state as primary detection: WebView2 (Tauri) may not expose
     // custom MIME types in dataTransfer.types during dragover events.
     const isInternal = draggingPath !== null || types.includes('application/x-monomark-node')
