@@ -74,6 +74,7 @@ export const Sidebar: React.FC = () => {
 
   // Drag & drop state (transient UI)
   const [draggingPath, setDraggingPath] = useState<string | null>(null)
+  const [draggingKind, setDraggingKind] = useState<'file' | 'folder' | null>(null)
   const [dropTarget, setDropTarget] = useState<DropTarget | null>(null)
   const [treeScrolled, setTreeScrolled] = useState(false)
   const treeRef = useRef<HTMLDivElement>(null)
@@ -115,18 +116,22 @@ export const Sidebar: React.FC = () => {
 
   const handleDragStart = useCallback((path: string, kind: 'file' | 'folder') => {
     setDraggingPath(path)
+    setDraggingKind(kind)
   }, [])
 
   const handleDragEnd = useCallback(() => {
     setDraggingPath(null)
+    setDraggingKind(null)
     setDropTarget(null)
   }, [])
 
   const handleSidebarDragOver = useCallback((e: React.DragEvent) => {
-    if (!e.dataTransfer.types.includes('application/x-monomark-node')) {
+    // Use React state as primary detection: WebView2 (Tauri) may not expose
+    // custom MIME types in dataTransfer.types during dragover events.
+    if (!draggingPath && !e.dataTransfer.types.includes('application/x-monomark-node')) {
       e.dataTransfer.dropEffect = 'none'
     }
-  }, [])
+  }, [draggingPath])
 
   const handleDrop = useCallback(async (
     dragging: { path: string; kind: 'file' | 'folder' },
@@ -300,6 +305,7 @@ export const Sidebar: React.FC = () => {
                     parentPath={vaultPath ?? ''}
                     setContextMenu={setContextMenu}
                     draggingPath={draggingPath}
+                    draggingKind={draggingKind}
                     dropTarget={dropTarget}
                     onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}

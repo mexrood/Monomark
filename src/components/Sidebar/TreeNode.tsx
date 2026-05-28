@@ -28,6 +28,7 @@ interface TreeNodeProps {
   parentPath: string
   setContextMenu: (m: ContextMenuState | null) => void
   draggingPath: string | null
+  draggingKind: 'file' | 'folder' | null
   dropTarget: DropTarget | null
   onDragStart: (path: string, kind: 'file' | 'folder') => void
   onDragEnd: () => void
@@ -53,7 +54,7 @@ function clampToWindow(x: number, y: number, popupW: number, popupH: number) {
 export const TreeNode: React.FC<TreeNodeProps> = ({
   node, depth, parentPath,
   setContextMenu,
-  draggingPath, dropTarget,
+  draggingPath, draggingKind, dropTarget,
   onDragStart, onDragEnd, onDropTarget, onDrop,
 }) => {
   const document = useVaultStore(s => s.document)
@@ -165,16 +166,18 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   const handleDragStart = useCallback((e: React.DragEvent) => {
     e.stopPropagation()
     e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData(
-      'application/x-monomark-node',
-      JSON.stringify({ path: node.path, kind: node.kind })
-    )
+    const payload = JSON.stringify({ path: node.path, kind: node.kind })
+    e.dataTransfer.setData('application/x-monomark-node', payload)
+    // Also set text/plain as fallback — WebView2 (Tauri) may strip custom types
+    e.dataTransfer.setData('text/plain', payload)
     onDragStart(node.path, node.kind)
   }, [node, onDragStart])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     const types = e.dataTransfer.types
-    const isInternal = types.includes('application/x-monomark-node')
+    // Use React state as primary detection: WebView2 (Tauri) may not expose
+    // custom MIME types in dataTransfer.types during dragover events.
+    const isInternal = draggingPath !== null || types.includes('application/x-monomark-node')
     const isExternal = types.includes('Files') && !isInternal
 
     if (isInternal) {
@@ -202,7 +205,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
         }, 700)
       }
     }
-  }, [node, parentPath, computePosition, onDropTarget, hoveredFolder, isOpen, toggleFolder])
+  }, [node, parentPath, draggingPath, computePosition, onDropTarget, hoveredFolder, isOpen, toggleFolder])
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
@@ -224,13 +227,24 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
   }, [])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    const data = e.dataTransfer.getData('application/x-monomark-node')
-    if (!data) return  // external file — let it bubble to window-level handler
+    let data = e.dataTransfer.getData('application/x-monomark-node')
+    let dragging: { path: string; kind: 'file' | 'folder' } | null = null
+
+    if (data) {
+      try { dragging = JSON.parse(data) } catch { /* corrupt data */ }
+    }
+
+    // Fallback: WebView2 (Tauri) may not return custom MIME data — use React state
+    if (!dragging && draggingPath && draggingKind) {
+      dragging = { path: draggingPath, kind: draggingKind }
+    }
+
+    if (!dragging) return  // external file — let it bubble to window-level handler
+
     e.preventDefault()
     e.stopPropagation()
-    const dragging = JSON.parse(data) as { path: string; kind: 'file' | 'folder' }
     onDrop(dragging, { nodePath: node.path, nodeKind: node.kind, parentPath, position: computePosition(e) })
-  }, [node, parentPath, computePosition, onDrop])
+  }, [node, parentPath, draggingPath, draggingKind, computePosition, onDrop])
 
   // ── Styles ──────────────────────────────────────────────────────────────────
 
@@ -341,6 +355,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
                 parentPath={node.path}
                 setContextMenu={setContextMenu}
                 draggingPath={draggingPath}
+                draggingKind={draggingKind}
                 dropTarget={dropTarget}
                 onDragStart={onDragStart}
                 onDragEnd={onDragEnd}
