@@ -74,12 +74,9 @@ pub fn start_sidecar(app: AppHandle) -> Result<serde_json::Value, AppError> {
     state.child = None;
 
     let vault_path = get_store_value(&app, "vaultPath").unwrap_or_default();
-    let token = get_store_value(&app, "mcpToken").unwrap_or_else(|| {
-        let t = generate_token();
-        if let Ok(store) = app.store(STORE_FILE) {
-            store.set("mcpToken", serde_json::Value::String(t.clone()));
-        }
-        t
+    // Token is stored in OS keychain, not settings.json
+    let token = super::keychain::get_mcp_token().unwrap_or_else(|| {
+        super::keychain::ensure_mcp_token_in_keychain(&app)
     });
 
     let port = state.port;
@@ -145,26 +142,12 @@ pub fn sidecar_status(app: AppHandle) -> Result<serde_json::Value, AppError> {
         state.child = None;
     }
 
-    let token = get_store_value(&app, "mcpToken");
+    // Token from OS keychain
+    let token = super::keychain::get_mcp_token();
 
     Ok(serde_json::json!({
         "running": running,
         "port": state.port,
         "token": token,
     }))
-}
-
-fn generate_token() -> String {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
-    use std::time::SystemTime;
-
-    let mut hasher = DefaultHasher::new();
-    SystemTime::now().hash(&mut hasher);
-    std::process::id().hash(&mut hasher);
-    format!(
-        "{:016x}{:016x}",
-        hasher.finish(),
-        hasher.finish().wrapping_mul(0x9E3779B97F4A7C15)
-    )
 }

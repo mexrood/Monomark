@@ -18,6 +18,14 @@ export function installTauriStub() {
   const noop = async () => {}
   const noopBool = async () => false
 
+  // Helper: keychain-backed secret storage via Rust commands
+  const storeSecret = (key: string, value: string) =>
+    safeInvoke('store_secret', { key, value })
+  const getSecret = (key: string) =>
+    safeInvoke<string | null>('get_secret', { key })
+  const deleteSecret = (key: string) =>
+    safeInvoke('delete_secret', { key })
+
   window.marrow = {
     window: {
       minimize: () => safeInvoke('minimize_window'),
@@ -86,7 +94,12 @@ export function installTauriStub() {
       },
       stop: async () => { await safeInvoke('stop_sidecar') },
       getAuditLog: async () => [],
-      regenerateToken: async () => '',
+      regenerateToken: async () => {
+        // Delete old token, restart sidecar (which generates a new one)
+        await deleteSecret('mcpToken')
+        const r = await safeInvoke<{ port: number; token: string }>('start_sidecar')
+        return r?.token ?? ''
+      },
       onStatusChange: () => {},
       offStatusChange: () => {},
       onNewCall: () => {},
@@ -96,6 +109,63 @@ export function installTauriStub() {
       getStreak: async () => 0,
       onActivity: () => {},
       offActivity: () => {},
+    },
+    ai: {
+      // Minimal AI stub — no local model support in Tauri yet,
+      // but cloud providers (Gemini, Groq) work via keychain-stored API keys.
+      getSnapshot: async () => ({
+        enabled: false,
+        activeModelId: null,
+        engineState: 'idle' as const,
+        engineError: null,
+        catalog: [],
+        recommendedId: '',
+        downloadedIds: [],
+        partialIds: [],
+      }),
+      setEnabled: noop,
+      download: noop,
+      cancelDownload: noop,
+      deleteModel: noop,
+      activate: noop,
+      unload: noop,
+      prompt: async () => 'AI not available in Tauri build yet',
+      onState: () => {},
+      offState: () => {},
+      onDownloadProgress: () => {},
+      offDownloadProgress: () => {},
+      // LLM provider abstraction — keys stored in OS keychain
+      listProviders: async () => {
+        const [geminiKey, groqKey] = await Promise.all([
+          getSecret('apikey:gemini'),
+          getSecret('apikey:groq'),
+        ])
+        return [
+          { id: 'local', name: 'Local (not available)', ready: false, hasKey: true },
+          { id: 'gemini', name: 'Gemini 2.0 Flash', ready: !!geminiKey, hasKey: !!geminiKey },
+          { id: 'groq', name: 'Groq Llama 3.1 8B', ready: !!groqKey, hasKey: !!groqKey },
+        ]
+      },
+      getActiveProvider: async () => {
+        const saved = await safeInvoke<string | null>('get_setting', { key: 'activeAiProvider' })
+        return saved ?? 'local'
+      },
+      setActiveProvider: async (id: string) => {
+        await safeInvoke('set_setting', { key: 'activeAiProvider', value: id })
+        return { ok: true }
+      },
+      saveApiKey: async (providerId: string, key: string) => {
+        await storeSecret(`apikey:${providerId}`, key)
+        return { ok: true }
+      },
+      deleteApiKey: async (providerId: string) => {
+        await deleteSecret(`apikey:${providerId}`)
+        return { ok: true }
+      },
+      testProvider: async () => ({
+        ok: false,
+        error: 'Cloud provider testing not implemented in Tauri build yet',
+      }),
     },
     preview: isTauri ? {
       open: (filePath: string, content: string) =>

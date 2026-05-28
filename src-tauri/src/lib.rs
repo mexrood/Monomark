@@ -36,6 +36,9 @@ pub fn run() {
                 .cloned()
                 .expect("default icon must be set in tauri.conf.json");
 
+            // ── Migrate MCP token to OS keychain ────────────────────────
+            let _token = commands::keychain::ensure_mcp_token_in_keychain(app.handle());
+
             let _tray = TrayIconBuilder::new()
                 .icon(icon)
                 .menu(&menu)
@@ -111,6 +114,10 @@ pub fn run() {
             commands::sidecar::start_sidecar,
             commands::sidecar::stop_sidecar,
             commands::sidecar::sidecar_status,
+            // Keychain (OS secrets)
+            commands::keychain::store_secret,
+            commands::keychain::get_secret,
+            commands::keychain::delete_secret,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
