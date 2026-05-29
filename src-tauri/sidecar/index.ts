@@ -56,7 +56,13 @@ function createMcpServer(): Server {
       }
     }
     try {
-      return await tool.handler(args ?? {})
+      const result = await tool.handler(args ?? {})
+      // Tool handlers return raw objects — wrap into MCP content format
+      if (result && typeof result === 'object' && 'content' in (result as any) && Array.isArray((result as any).content)) {
+        return result // Already in MCP format (e.g. error responses)
+      }
+      const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2)
+      return { content: [{ type: 'text' as const, text }] }
     } catch (err: any) {
       return {
         isError: true,
