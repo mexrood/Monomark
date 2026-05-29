@@ -1,3 +1,4 @@
+pub mod autostart;
 pub mod claude_integration;
 pub mod keychain;
 pub mod settings;

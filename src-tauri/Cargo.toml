@@ -30,3 +30,4 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 keyring = { version = "3", features = ["sync-secret-service", "windows-native", "apple-native"] }
 dirs = "6"
+winreg = "0.55"

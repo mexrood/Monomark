@@ -125,6 +125,8 @@ pub fn run() {
             commands::keychain::get_secret,
             commands::keychain::delete_secret,
             // Claude integration
+            commands::autostart::get_autostart_enabled,
+            commands::autostart::set_autostart_enabled,
             commands::claude_integration::install_to_claude_desktop,
             commands::claude_integration::get_claude_desktop_status,
             commands::claude_integration::get_claude_code_command,

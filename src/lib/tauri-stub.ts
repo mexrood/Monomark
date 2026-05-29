@@ -45,12 +45,10 @@ export function installTauriStub() {
         return v || '1.0.43-tauri'
       },
       getAutostartEnabled: async () => {
-        const v = await safeInvoke<boolean>('get_setting', { key: 'autostartEnabled' }).catch(() => null)
-        return v ?? false
+        return await safeInvoke<boolean>('get_autostart_enabled').catch(() => false) ?? false
       },
       setAutostartEnabled: async (enabled: unknown) => {
-        await safeInvoke('set_setting', { key: 'autostartEnabled', value: !!enabled })
-        // Tauri autostart plugin not yet wired — just persist the setting
+        await safeInvoke('set_autostart_enabled', { enabled: !!enabled })
       },
       quit: async () => {
         await safeInvoke('stop_sidecar').catch(() => {})
