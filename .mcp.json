@@ -8,7 +8,7 @@
         "http://127.0.0.1:7456/mcp",
         "--allow-http",
         "--header",
-        "Authorization: Bearer _wBAwHyMJCyUKlSP3GN5NOkHKO72nV-ARlJf4rK66iY"
+        "Authorization: Bearer 81fe4069641ce9170130edc000ec42e3"
       ]
     }
   }
