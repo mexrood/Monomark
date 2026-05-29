@@ -16,6 +16,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(Mutex::new(commands::watcher::WatcherState::new()))
         .manage(Mutex::new(commands::sidecar::SidecarState::new()))
         .setup(|app| {

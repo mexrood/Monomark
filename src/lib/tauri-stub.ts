@@ -6,6 +6,7 @@
 import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { check as checkUpdate } from '@tauri-apps/plugin-updater'
+import { relaunch } from '@tauri-apps/plugin-process'
 import type { UpdateState } from '../types/window'
 
 const isTauri = '__TAURI_INTERNALS__' in window
@@ -289,7 +290,8 @@ function createUpdaterBridge() {
       if (!pendingUpdate) return
       emit({ status: 'installing' })
       await pendingUpdate.install()
-      // Tauri restarts the app automatically after install
+      // Tauri doesn't auto-restart — relaunch explicitly
+      await relaunch()
     },
 
     onStateChange: (cb: (s: UpdateState) => void) => { listener = cb },
