@@ -14,6 +14,7 @@
     "dev:tauri": "npm run build:sidecar && tauri dev",
     "build": "tsc -p tsconfig.node.json && vite build && electron-builder --win",
     "build:vite": "vite build",
+    "tauri": "tauri",
     "build:sidecar": "node src-tauri/sidecar/build.mjs",
     "build:tauri": "npm run build:sidecar && tauri build",
     "build:x64": "tsc -p tsconfig.node.json && vite build && electron-builder --win --x64",
