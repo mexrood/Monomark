@@ -18,6 +18,7 @@ interface VaultStore {
   toggleFolder(path: string): void
   expandPathTo(path: string): void
   importFiles(files: File[], targetFolder: string | null): Promise<void>
+  importFilePaths(paths: string[], targetFolder: string | null): Promise<void>
 }
 
 // Supported import extensions.
@@ -227,6 +228,45 @@ export const useVaultStore = create<VaultStore>((set, get) => ({
           ? 'Image saved to attachments'
           : `${imageOnlyCount} images saved to attachments`
       )
+    }
+  },
+
+  async importFilePaths(paths, targetFolder) {
+    const vaultPath = get().vaultPath
+    if (!vaultPath || paths.length === 0) return
+    const target = targetFolder ?? `${vaultPath}${sep(vaultPath)}inbox`
+    const folderLabel = target.replace(/\\/g, '/').split('/').pop() || 'vault'
+    const toast = useToastStore.getState()
+    const importedPaths: string[] = []
+
+    for (const srcPath of paths) {
+      const ext = extOf(srcPath.split(/[\\/]/).pop() || '')
+      if (!TEXT_EXTS.has(ext) && !IMAGE_EXTS.has(ext)) {
+        toast.error(`Unsupported file type: ${ext}`)
+        continue
+      }
+      if (IMAGE_EXTS.has(ext)) {
+        // TODO: handle image import from path
+        continue
+      }
+      const result = await window.marrow.vault.importFile(srcPath, target, 'keep-both')
+      if (!result.ok) {
+        toast.error(`Failed to import ${srcPath.split(/[\\/]/).pop()}`)
+        continue
+      }
+      importedPaths.push(result.path)
+    }
+
+    if (importedPaths.length > 0) {
+      await get().refreshTree()
+      if (importedPaths.length === 1) {
+        const name = importedPaths[0].split(/[\\/]/).pop()
+        toast.success(`Added: ${name} → ${folderLabel}/`, {
+          action: { label: 'Open', onClick: () => { void get().openDocument(importedPaths[0]) } },
+        })
+      } else {
+        toast.success(`Added ${importedPaths.length} files → ${folderLabel}/`)
+      }
     }
   },
 }))

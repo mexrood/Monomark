@@ -88,7 +88,27 @@ export function installTauriStub() {
       fileExists: (relPath: string) => safeInvoke<boolean>('vault_file_exists', { relPath }),
       writeBinary: (relPath: string, base64: string) =>
         safeInvoke<{ ok: boolean; relPath: string }>('write_binary', { relPath, base64 }),
-      importFile: async () => ({ ok: false as const, reason: 'no-vault' as const }),
+      importFile: async (srcPath: string, targetDir: string, _onConflict?: 'fail' | 'replace' | 'keep-both') => {
+        try {
+          const fileName = srcPath.replace(/\\/g, '/').split('/').pop() || 'untitled.md'
+          const content = await safeInvoke<string>('read_file', { path: srcPath })
+          if (content == null) return { ok: false as const, reason: 'error' as const, message: 'Could not read source file' }
+          let destPath = `${targetDir}${targetDir.includes('/') ? '/' : '\\'}${fileName}`
+          const exists = await safeInvoke<boolean>('file_exists', { path: destPath })
+          let renamedFrom: string | undefined
+          if (exists) {
+            const base = fileName.replace(/\.\w+$/, '')
+            const ext = fileName.slice(base.length)
+            const ts = Date.now().toString(36)
+            destPath = `${targetDir}${targetDir.includes('/') ? '/' : '\\'}${base}-${ts}${ext}`
+            renamedFrom = fileName
+          }
+          await safeInvoke('write_file', { path: destPath, content })
+          return { ok: true as const, path: destPath, renamedFrom }
+        } catch (err: any) {
+          return { ok: false as const, reason: 'error' as const, message: err?.message || String(err) }
+        }
+      },
       getRelationsForBlock: async () => [],
     },
     mcp: {
@@ -214,7 +234,35 @@ export function installTauriStub() {
       },
       offFileContentChange: () => {},
     } : undefined,
+    util: isTauri ? {
+      getPathForFile: (file: File) => {
+        // WebView2 exposes file.path for drag-dropped files
+        return (file as any).path as string ?? ''
+      },
+      showInFolder: noop,
+      copyToClipboard: noop,
+      showMessageBox: async () => 0,
+    } : undefined,
     updater: isTauri ? createUpdaterBridge() : undefined,
+  }
+
+  // In Tauri, capture drag-drop file paths via Tauri event API
+  // and store them so getPathForFile can retrieve them
+  if (isTauri) {
+    import('@tauri-apps/api/webviewWindow').then(({ getCurrentWebviewWindow }) => {
+      const webview = getCurrentWebviewWindow()
+      let lastDropPaths: string[] = []
+
+      webview.onDragDropEvent((event) => {
+        if (event.payload.type === 'drop') {
+          lastDropPaths = event.payload.paths
+          // Dispatch a custom event with the file paths for the drop handler
+          window.dispatchEvent(new CustomEvent('tauri:file-drop', {
+            detail: { paths: lastDropPaths }
+          }))
+        }
+      })
+    }).catch(() => {})
   }
 }
 

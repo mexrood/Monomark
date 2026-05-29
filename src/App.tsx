@@ -170,15 +170,26 @@ const MainApp: React.FC = () => {
       await useVaultStore.getState().importFiles(files, target)
     }
 
+    // Tauri: handle file drops with real OS paths
+    const onTauriDrop = async (e: Event) => {
+      const paths = (e as CustomEvent).detail?.paths as string[] | undefined
+      if (!paths || paths.length === 0) return
+      const target = useDragStore.getState().hoveredFolder
+      useDragStore.getState().reset()
+      await useVaultStore.getState().importFilePaths(paths, target)
+    }
+
     window.addEventListener('dragenter', onDragEnter)
     window.addEventListener('dragover', onDragOver)
     window.addEventListener('dragleave', onDragLeave)
     window.addEventListener('drop', onDrop)
+    window.addEventListener('tauri:file-drop', onTauriDrop)
     return () => {
       window.removeEventListener('dragenter', onDragEnter)
       window.removeEventListener('dragover', onDragOver)
       window.removeEventListener('dragleave', onDragLeave)
       window.removeEventListener('drop', onDrop)
+      window.removeEventListener('tauri:file-drop', onTauriDrop)
     }
   }, [])
 
