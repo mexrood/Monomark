@@ -248,7 +248,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
 
   // ── Styles ──────────────────────────────────────────────────────────────────
 
-  const paddingLeft = 8 + depth * 16
+  const paddingLeft = 8 + depth * 12
 
   const isDragging = draggingPath === node.path
   const isDragOver = dropTarget?.nodePath === node.path && dropTarget?.position === 'into'
@@ -343,7 +343,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
       {node.kind === 'folder' && isOpen && (
         <div className={styles.children}>
           {node.children.length === 0 ? (
-            <div style={{ paddingLeft: paddingLeft + 20, paddingTop: 2, paddingBottom: 2, color: 'var(--text-tertiary)', fontSize: 'var(--text-xs)' }}>
+            <div style={{ paddingLeft: paddingLeft + 16, paddingTop: 2, paddingBottom: 2, color: 'var(--text-tertiary)', fontSize: 'var(--text-xs)' }}>
               Empty
             </div>
           ) : (
