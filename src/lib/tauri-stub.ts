@@ -246,24 +246,6 @@ export function installTauriStub() {
     updater: isTauri ? createUpdaterBridge() : undefined,
   }
 
-  // In Tauri, capture drag-drop file paths via Tauri event API
-  // and store them so getPathForFile can retrieve them
-  if (isTauri) {
-    import('@tauri-apps/api/webviewWindow').then(({ getCurrentWebviewWindow }) => {
-      const webview = getCurrentWebviewWindow()
-      let lastDropPaths: string[] = []
-
-      webview.onDragDropEvent((event) => {
-        if (event.payload.type === 'drop') {
-          lastDropPaths = event.payload.paths
-          // Dispatch a custom event with the file paths for the drop handler
-          window.dispatchEvent(new CustomEvent('tauri:file-drop', {
-            detail: { paths: lastDropPaths }
-          }))
-        }
-      })
-    }).catch(() => {})
-  }
 }
 
 // ── Tauri updater bridge ─────────────────────────────────────────────────────

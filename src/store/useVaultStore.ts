@@ -186,8 +186,29 @@ export const useVaultStore = create<VaultStore>((set, get) => ({
       }
 
       if (!srcPath) {
-        toast.error(`Could not read path for ${file.name}`)
-        skipped.push(file.name)
+        // Fallback: read file content via FileReader (works in all WebViews)
+        try {
+          const content = await file.text()
+          let fileName = file.name
+          let destPath = `${target}${sep(target)}${fileName}`
+          const exists = await window.marrow.vault.exists(destPath)
+          let renamedFrom: string | undefined
+          if (exists) {
+            const base = fileName.replace(/\.\w+$/, '')
+            const extPart = fileName.slice(base.length)
+            fileName = `${base}-${Date.now().toString(36)}${extPart}`
+            destPath = `${target}${sep(target)}${fileName}`
+            renamedFrom = file.name
+          }
+          await window.marrow.vault.writeFile(destPath, content)
+          importedPaths.push(destPath)
+          if (renamedFrom) {
+            toast.info(`Renamed "${renamedFrom}" → "${fileName}" (name was taken)`)
+          }
+        } catch {
+          toast.error(`Failed to import ${file.name}`)
+          skipped.push(file.name)
+        }
         continue
       }
 

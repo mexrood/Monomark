@@ -248,7 +248,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
 
   // ── Styles ──────────────────────────────────────────────────────────────────
 
-  const paddingLeft = 8 + depth * 12
+  const paddingLeft = 8 + depth * 8
 
   const isDragging = draggingPath === node.path
   const isDragOver = dropTarget?.nodePath === node.path && dropTarget?.position === 'into'

@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Monomark",
-  "version": "1.0.51",
+  "version": "1.0.52",
   "identifier": "app.marrow.monomark",
   "build": {
     "frontendDist": "../dist",
@@ -20,7 +20,7 @@
         "resizable": true,
         "fullscreen": false,
         "decorations": false,
-        "dragDropEnabled": true
+        "dragDropEnabled": false
       }
     ],
     "security": {

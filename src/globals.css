@@ -28,7 +28,7 @@ html, body {
   margin: 0;
   padding: 0;
   /* Window is no longer transparent — background clips to border-radius below */
-  background: var(--bg-chrome);
+  background: var(--bg-chrome, #131313);
   border-radius: 12px;
 }
 
