@@ -1,4 +1,5 @@
 use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder};
+use std::process;
 
 use crate::error::AppError;
 
@@ -85,6 +86,13 @@ pub fn close_preview(app: AppHandle) -> Result<(), AppError> {
         win.destroy().map_err(|e| AppError::from(e.to_string()))?;
     }
     Ok(())
+}
+
+#[tauri::command]
+pub fn quit_app(app: AppHandle) -> Result<(), AppError> {
+    app.exit(0);
+    // Fallback in case exit doesn't terminate immediately
+    process::exit(0);
 }
 
 /// Open a file in the main window from the preview window (after "Save to Vault")

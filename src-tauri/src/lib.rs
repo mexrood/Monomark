@@ -60,13 +60,17 @@ pub fn run() {
                     _ => {}
                 })
                 .on_tray_icon_event(|tray, event| {
-                    if let tauri::tray::TrayIconEvent::Click { .. } = event {
-                        if let Some(win) = tray.app_handle().get_webview_window("main") {
-                            if win.is_visible().unwrap_or(false) {
-                                let _ = win.hide();
-                            } else {
-                                let _ = win.show();
-                                let _ = win.set_focus();
+                    // Only toggle window on LEFT double-click (Windows convention)
+                    // Right-click shows the context menu automatically
+                    if let tauri::tray::TrayIconEvent::DoubleClick { button, .. } = event {
+                        if button == tauri::tray::MouseButton::Left {
+                            if let Some(win) = tray.app_handle().get_webview_window("main") {
+                                if win.is_visible().unwrap_or(false) {
+                                    let _ = win.hide();
+                                } else {
+                                    let _ = win.show();
+                                    let _ = win.set_focus();
+                                }
                             }
                         }
                     }
@@ -81,6 +85,7 @@ pub fn run() {
             commands::window::toggle_maximize,
             commands::window::close_window,
             commands::window::is_maximized,
+            commands::window::quit_app,
             commands::window::open_preview,
             commands::window::close_preview,
             commands::window::preview_open_in_main,

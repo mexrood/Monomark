@@ -55,6 +55,45 @@ export const useAppStore = create<AppStore>((set, get) => ({
     // Hydrate MCP status (including token) on startup
     if (window.marrow.mcp) {
       const mcpFull = await window.marrow.mcp.getStatus()
+
+      // Auto-start MCP if it was enabled in previous session
+      if (!mcpFull.running && '__TAURI_INTERNALS__' in window) {
+        try {
+          const { invoke: tauriInvoke } = await import('@tauri-apps/api/core')
+          const wasEnabled = await tauriInvoke<boolean | null>('get_setting', { key: 'mcpEnabled' })
+          if (wasEnabled === true) {
+            console.log('[MCP] Auto-starting from saved state...')
+            try {
+              const result = await window.marrow.mcp.start()
+              set({
+                mcpStatus: {
+                  running: true,
+                  port: result.port,
+                  token: result.token,
+                  state: 'running',
+                  error: null,
+                },
+              })
+              // Subscribe and return early
+              window.marrow.mcp.onStatusChange((status) => {
+                set(s => ({
+                  mcpStatus: {
+                    ...s.mcpStatus,
+                    running: status.running,
+                    port: status.port,
+                    state: (status as McpStatus).state ?? (status.running ? 'running' : 'disabled'),
+                    error: (status as McpStatus).error ?? null,
+                  },
+                }))
+              })
+              return
+            } catch (err) {
+              console.error('[MCP] Auto-start failed:', err)
+            }
+          }
+        } catch {}
+      }
+
       set({
         mcpStatus: {
           running: mcpFull.running,
@@ -94,10 +133,14 @@ export const useAppStore = create<AppStore>((set, get) => ({
     if (running) {
       await window.marrow.mcp.stop()
       set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'disabled' } }))
+      // Persist disabled state
+      try { await (window as any).__TAURI_INTERNALS__?.invoke?.('set_setting', { key: 'mcpEnabled', value: false }) } catch {}
     } else {
       try {
         const result = await window.marrow.mcp.start()
         set(s => ({ mcpStatus: { ...s.mcpStatus, running: true, port: result.port, token: result.token, state: 'running' } }))
+        // Persist enabled state
+        try { await (window as any).__TAURI_INTERNALS__?.invoke?.('set_setting', { key: 'mcpEnabled', value: true }) } catch {}
       } catch (err) {
         console.error('[MCP] Failed to start:', err)
         set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'error', error: String(err) } }))

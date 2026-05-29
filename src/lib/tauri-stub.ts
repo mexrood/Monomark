@@ -39,10 +39,23 @@ export function installTauriStub() {
       zoomReset: noop,
     },
     app: {
-      getVersion: async () => '0.1.0-tauri',
-      getAutostartEnabled: noopBool,
-      setAutostartEnabled: noop,
-      quit: noop,
+      getVersion: async () => {
+        const v = await safeInvoke<string>('get_setting', { key: '__app_version__' }).catch(() => null)
+        return v || '1.0.43-tauri'
+      },
+      getAutostartEnabled: async () => {
+        const v = await safeInvoke<boolean>('get_setting', { key: 'autostartEnabled' }).catch(() => null)
+        return v ?? false
+      },
+      setAutostartEnabled: async (enabled: unknown) => {
+        await safeInvoke('set_setting', { key: 'autostartEnabled', value: !!enabled })
+        // Tauri autostart plugin not yet wired — just persist the setting
+      },
+      quit: async () => {
+        await safeInvoke('stop_sidecar').catch(() => {})
+        // exit(0) from Rust
+        await safeInvoke('quit_app')
+      },
       showWindow: noop,
       setTheme: async (theme: string) => {
         await safeInvoke('set_setting', { key: 'theme', value: theme })

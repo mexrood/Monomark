@@ -3,6 +3,9 @@ use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_store::StoreExt;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
 use crate::error::AppError;
 
 const STORE_FILE: &str = "settings.json";
@@ -93,13 +96,19 @@ pub fn start_sidecar(app: AppHandle) -> Result<serde_json::Value, AppError> {
         vault_path
     );
 
-    let child = Command::new("node")
-        .arg(&sidecar_path)
+    let mut cmd = Command::new("node");
+    cmd.arg(&sidecar_path)
         .env("MONOMARK_VAULT_PATH", &vault_path)
         .env("MONOMARK_MCP_TOKEN", &token)
         .env("MONOMARK_PORT", port.to_string())
         .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+
+    // Hide the console window on Windows (CREATE_NO_WINDOW = 0x08000000)
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(0x08000000);
+
+    let child = cmd
         .spawn()
         .map_err(|e| AppError::from(format!("Failed to spawn sidecar: {}", e)))?;
 
