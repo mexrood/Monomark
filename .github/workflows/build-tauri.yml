@@ -54,7 +54,6 @@ jobs:
         run: node src-tauri/sidecar/build.mjs
 
       - name: Build Tauri app
-        shell: bash
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
