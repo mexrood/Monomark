@@ -9,10 +9,6 @@ on:
 permissions:
   contents: write
 
-env:
-  TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-  TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-
 jobs:
   build:
     strategy:
@@ -22,21 +18,12 @@ jobs:
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             label: windows-x64
-            ext: .nsis.zip
-            sig_ext: .nsis.zip.sig
-            bundle_dir: nsis
           - os: macos-latest
             target: aarch64-apple-darwin
             label: macos-arm64
-            ext: .app.tar.gz
-            sig_ext: .app.tar.gz.sig
-            bundle_dir: macos
           - os: macos-latest
             target: x86_64-apple-darwin
             label: macos-x64
-            ext: .app.tar.gz
-            sig_ext: .app.tar.gz.sig
-            bundle_dir: macos
 
     runs-on: ${{ matrix.os }}
     name: Build (${{ matrix.label }})
@@ -67,26 +54,21 @@ jobs:
         run: node src-tauri/sidecar/build.mjs
 
       - name: Build Tauri app
+        shell: bash
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: npx tauri build --target ${{ matrix.target }}
 
       - name: List bundle output
         shell: bash
-        run: find src-tauri/target/${{ matrix.target }}/release/bundle -type f \( -name "*.sig" -o -name "*.tar.gz" -o -name "*.nsis.zip" -o -name "*.msi" -o -name "*.exe" -o -name "*.dmg" \) 2>/dev/null || true
+        run: find src-tauri/target/${{ matrix.target }}/release/bundle -type f 2>/dev/null | sort || true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: monomark-${{ matrix.label }}
-          path: |
-            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi
-            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi.zip
-            src-tauri/target/${{ matrix.target }}/release/bundle/msi/*.msi.zip.sig
-            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*-setup.exe
-            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.nsis.zip
-            src-tauri/target/${{ matrix.target }}/release/bundle/nsis/*.nsis.zip.sig
-            src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
-            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz
-            src-tauri/target/${{ matrix.target }}/release/bundle/macos/*.app.tar.gz.sig
+          path: src-tauri/target/${{ matrix.target }}/release/bundle
           if-no-files-found: ignore
 
   release:
@@ -100,85 +82,90 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-          merge-multiple: false
 
       - name: Read version from tauri.conf.json
         id: version
         run: echo "version=$(jq -r .version src-tauri/tauri.conf.json)" >> "$GITHUB_OUTPUT"
 
-      - name: List all artifacts
+      - name: List all downloaded files
         run: find artifacts -type f | sort
 
-      - name: Generate latest.json
+      - name: Generate latest.json and create release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
         run: |
           VERSION="${{ steps.version.outputs.version }}"
           TAG="${{ github.ref_name }}"
           PUB_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-
-          # Read signatures
-          WIN_SIG=""
-          MAC_X64_SIG=""
-          MAC_ARM64_SIG=""
-
-          if [ -f artifacts/monomark-windows-x64/*.nsis.zip.sig ]; then
-            WIN_SIG=$(cat artifacts/monomark-windows-x64/*.nsis.zip.sig)
-          fi
-          if [ -f artifacts/monomark-macos-x64/*.app.tar.gz.sig ]; then
-            MAC_X64_SIG=$(cat artifacts/monomark-macos-x64/*.app.tar.gz.sig)
-          fi
-          if [ -f artifacts/monomark-macos-arm64/*.app.tar.gz.sig ]; then
-            MAC_ARM64_SIG=$(cat artifacts/monomark-macos-arm64/*.app.tar.gz.sig)
-          fi
-
           DOWNLOAD_BASE="https://github.com/${{ github.repository }}/releases/download/${TAG}"
 
-          # Find actual filenames
-          WIN_NSIS=$(basename artifacts/monomark-windows-x64/*.nsis.zip 2>/dev/null || echo "")
-          MAC_X64_TAR=$(basename artifacts/monomark-macos-x64/*.app.tar.gz 2>/dev/null || echo "")
-          MAC_ARM64_TAR=$(basename artifacts/monomark-macos-arm64/*.app.tar.gz 2>/dev/null || echo "")
+          # Find updater artifacts and their signatures
+          # Windows: nsis.zip + nsis.zip.sig
+          WIN_ZIP=$(find artifacts/monomark-windows-x64 -name "*.nsis.zip" ! -name "*.sig" 2>/dev/null | head -1)
+          WIN_SIG=$(find artifacts/monomark-windows-x64 -name "*.nsis.zip.sig" 2>/dev/null | head -1)
+          # macOS x64: app.tar.gz + app.tar.gz.sig
+          MAC_X64_TAR=$(find artifacts/monomark-macos-x64 -name "*.app.tar.gz" ! -name "*.sig" 2>/dev/null | head -1)
+          MAC_X64_SIG=$(find artifacts/monomark-macos-x64 -name "*.app.tar.gz.sig" 2>/dev/null | head -1)
+          # macOS arm64: app.tar.gz + app.tar.gz.sig
+          MAC_ARM_TAR=$(find artifacts/monomark-macos-arm64 -name "*.app.tar.gz" ! -name "*.sig" 2>/dev/null | head -1)
+          MAC_ARM_SIG=$(find artifacts/monomark-macos-arm64 -name "*.app.tar.gz.sig" 2>/dev/null | head -1)
 
-          cat > latest.json << ENDJSON
-          {
-            "version": "${VERSION}",
-            "notes": "See the assets below for download links.",
-            "pub_date": "${PUB_DATE}",
-            "platforms": {
-              "windows-x86_64": {
-                "signature": "${WIN_SIG}",
-                "url": "${DOWNLOAD_BASE}/${WIN_NSIS}"
-              },
-              "darwin-x86_64": {
-                "signature": "${MAC_X64_SIG}",
-                "url": "${DOWNLOAD_BASE}/${MAC_X64_TAR}"
-              },
-              "darwin-aarch64": {
-                "signature": "${MAC_ARM64_SIG}",
-                "url": "${DOWNLOAD_BASE}/${MAC_ARM64_TAR}"
-              }
-            }
-          }
-          ENDJSON
+          echo "WIN_ZIP=$WIN_ZIP"
+          echo "WIN_SIG=$WIN_SIG"
+          echo "MAC_X64_TAR=$MAC_X64_TAR"
+          echo "MAC_X64_SIG=$MAC_X64_SIG"
+          echo "MAC_ARM_TAR=$MAC_ARM_TAR"
+          echo "MAC_ARM_SIG=$MAC_ARM_SIG"
+
+          # Read signature contents
+          read_sig() { if [ -f "$1" ]; then cat "$1"; else echo ""; fi; }
+
+          WIN_SIG_CONTENT=$(read_sig "$WIN_SIG")
+          MAC_X64_SIG_CONTENT=$(read_sig "$MAC_X64_SIG")
+          MAC_ARM_SIG_CONTENT=$(read_sig "$MAC_ARM_SIG")
+
+          # Build platforms JSON
+          PLATFORMS="{}"
+          if [ -n "$WIN_ZIP" ] && [ -n "$WIN_SIG_CONTENT" ]; then
+            WIN_NAME=$(basename "$WIN_ZIP")
+            PLATFORMS=$(echo "$PLATFORMS" | jq --arg sig "$WIN_SIG_CONTENT" --arg url "${DOWNLOAD_BASE}/${WIN_NAME}" \
+              '. + {"windows-x86_64": {"signature": $sig, "url": $url}}')
+          fi
+          if [ -n "$MAC_X64_TAR" ] && [ -n "$MAC_X64_SIG_CONTENT" ]; then
+            MAC_X64_NAME=$(basename "$MAC_X64_TAR")
+            PLATFORMS=$(echo "$PLATFORMS" | jq --arg sig "$MAC_X64_SIG_CONTENT" --arg url "${DOWNLOAD_BASE}/${MAC_X64_NAME}" \
+              '. + {"darwin-x86_64": {"signature": $sig, "url": $url}}')
+          fi
+          if [ -n "$MAC_ARM_TAR" ] && [ -n "$MAC_ARM_SIG_CONTENT" ]; then
+            MAC_ARM_NAME=$(basename "$MAC_ARM_TAR")
+            PLATFORMS=$(echo "$PLATFORMS" | jq --arg sig "$MAC_ARM_SIG_CONTENT" --arg url "${DOWNLOAD_BASE}/${MAC_ARM_NAME}" \
+              '. + {"darwin-aarch64": {"signature": $sig, "url": $url}}')
+          fi
+
+          jq -n \
+            --arg version "$VERSION" \
+            --arg notes "See the assets below for download links." \
+            --arg pub_date "$PUB_DATE" \
+            --argjson platforms "$PLATFORMS" \
+            '{version: $version, notes: $notes, pub_date: $pub_date, platforms: $platforms}' > latest.json
 
           echo "Generated latest.json:"
           cat latest.json
 
-      - name: Create GitHub Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          TAG="${{ github.ref_name }}"
-
-          # Collect all release assets
-          ASSETS=()
-          for f in artifacts/monomark-windows-x64/*.exe artifacts/monomark-windows-x64/*.msi artifacts/monomark-windows-x64/*.nsis.zip artifacts/monomark-windows-x64/*.nsis.zip.sig \
-                   artifacts/monomark-macos-x64/*.dmg artifacts/monomark-macos-x64/*.app.tar.gz artifacts/monomark-macos-x64/*.app.tar.gz.sig \
-                   artifacts/monomark-macos-arm64/*.dmg artifacts/monomark-macos-arm64/*.app.tar.gz artifacts/monomark-macos-arm64/*.app.tar.gz.sig; do
-            if [ -f "$f" ]; then
-              ASSETS+=("$f")
-            fi
+          # Collect release assets
+          ASSETS=("latest.json")
+          # Add installers (exe, msi, dmg) and updater bundles (nsis.zip, app.tar.gz) and sigs
+          for f in $(find artifacts -type f \( \
+            -name "*-setup.exe" -o -name "*.msi" -o -name "*.dmg" \
+            -o -name "*.nsis.zip" -o -name "*.nsis.zip.sig" \
+            -o -name "*.app.tar.gz" -o -name "*.app.tar.gz.sig" \
+          \) | sort); do
+            ASSETS+=("$f")
           done
-          ASSETS+=("latest.json")
+
+          echo "Release assets:"
+          printf '  %s\n' "${ASSETS[@]}"
 
           gh release create "$TAG" \
             --title "Monomark $TAG" \
