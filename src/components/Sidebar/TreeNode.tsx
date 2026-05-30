@@ -248,7 +248,7 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
 
   // ── Styles ──────────────────────────────────────────────────────────────────
 
-  const paddingLeft = 8 + depth * 8
+  const paddingLeft = 8 + depth * 20
 
   const isDragging = draggingPath === node.path
   const isDragOver = dropTarget?.nodePath === node.path && dropTarget?.position === 'into'
@@ -296,12 +296,9 @@ export const TreeNode: React.FC<TreeNodeProps> = ({
             </span>
           </span>
         ) : (
-          <>
-            <span style={{ width: 16, flexShrink: 0 }} />
-            <span className={styles.nodeIcon}>
-              <FileText size={14} strokeWidth={1.5} />
-            </span>
-          </>
+          <span className={styles.nodeIcon}>
+            <FileText size={14} strokeWidth={1.5} />
+          </span>
         )}
 
         {isRenaming ? (

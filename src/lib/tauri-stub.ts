@@ -175,7 +175,45 @@ export function installTauriStub() {
       deleteModel: noop,
       activate: noop,
       unload: noop,
-      prompt: async () => 'AI not available in Tauri build yet',
+      prompt: async (text: string, opts?: { systemPrompt?: string; maxTokens?: number; temperature?: number }) => {
+        const activeProvider = await safeInvoke<string | null>('get_setting', { key: 'activeAiProvider' }) ?? 'gemini'
+        const apiKey = await getSecret(`apikey:${activeProvider}`)
+        if (!apiKey) return 'No API key configured for ' + activeProvider
+
+        const systemPrompt = opts?.systemPrompt ?? ''
+        const maxTokens = opts?.maxTokens ?? 2048
+        const temperature = opts?.temperature ?? 0.7
+
+        try {
+          if (activeProvider === 'gemini') {
+            const fullPrompt = systemPrompt ? `${systemPrompt}\n\n${text}` : text
+            const res = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+              { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }], generationConfig: { maxOutputTokens: maxTokens, temperature } }) }
+            )
+            if (!res.ok) throw new Error(`Gemini ${res.status}`)
+            const data = await res.json()
+            return data?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+          }
+          if (activeProvider === 'groq') {
+            const messages: { role: string; content: string }[] = []
+            if (systemPrompt) messages.push({ role: 'system', content: systemPrompt })
+            messages.push({ role: 'user', content: text })
+            const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+              body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages, max_tokens: maxTokens, temperature })
+            })
+            if (!res.ok) throw new Error(`Groq ${res.status}`)
+            const data = await res.json()
+            return data?.choices?.[0]?.message?.content || ''
+          }
+          return 'Unknown provider: ' + activeProvider
+        } catch (err: any) {
+          return `AI error: ${err?.message || err}`
+        }
+      },
       onState: () => {},
       offState: () => {},
       onDownloadProgress: () => {},
@@ -208,10 +246,38 @@ export function installTauriStub() {
         await deleteSecret(`apikey:${providerId}`)
         return { ok: true }
       },
-      testProvider: async () => ({
-        ok: false,
-        error: 'Cloud provider testing not implemented in Tauri build yet',
-      }),
+      testProvider: async (providerId: string) => {
+        try {
+          const apiKey = await getSecret(`apikey:${providerId}`)
+          if (!apiKey) return { ok: false, error: 'No API key configured' }
+
+          if (providerId === 'gemini') {
+            const res = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`,
+              { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contents: [{ parts: [{ text: 'Reply with just "OK"' }] }], generationConfig: { maxOutputTokens: 10 } }) }
+            )
+            if (!res.ok) { const e = await res.text().catch(() => ''); return { ok: false, error: `Gemini ${res.status}: ${e.slice(0, 200)}` } }
+            const data = await res.json()
+            return { ok: true, response: data?.candidates?.[0]?.content?.parts?.[0]?.text?.slice(0, 50) || 'OK' }
+          }
+
+          if (providerId === 'groq') {
+            const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+              body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'Reply with just "OK"' }], max_tokens: 10 })
+            })
+            if (!res.ok) { const e = await res.text().catch(() => ''); return { ok: false, error: `Groq ${res.status}: ${e.slice(0, 200)}` } }
+            const data = await res.json()
+            return { ok: true, response: data?.choices?.[0]?.message?.content?.slice(0, 50) || 'OK' }
+          }
+
+          return { ok: false, error: `Unknown provider: ${providerId}` }
+        } catch (err: any) {
+          return { ok: false, error: err?.message || String(err) }
+        }
+      },
     },
     preview: isTauri ? {
       open: (filePath: string, content: string) =>

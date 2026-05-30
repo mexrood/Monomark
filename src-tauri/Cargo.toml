@@ -32,3 +32,4 @@ keyring = { version = "3", features = ["sync-secret-service", "windows-native", 
 dirs = "6"
 [target.'cfg(windows)'.dependencies]
 winreg = "0.55"
+windows = { version = "0.58", features = ["Win32_Graphics_Dwm", "Win32_Foundation"] }

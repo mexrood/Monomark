@@ -264,6 +264,7 @@ h1, h2, h3, h4, h5, h6,
 
 /* Paper — pure white, clean */
 [data-theme="paper"] {
+  --window-border: rgba(0, 0, 0, 0.1);
   --shadow-popover:
     0 4px 16px rgba(0,0,0,0.08),
     0 0 0 1px rgba(0,0,0,0.04);
@@ -292,6 +293,7 @@ h1, h2, h3, h4, h5, h6,
 
 /* Cream — warm off-white, paper-like feel */
 [data-theme="cream"] {
+  --window-border: rgba(0, 0, 0, 0.1);
   --shadow-popover:
     0 4px 16px rgba(0,0,0,0.08),
     0 0 0 1px rgba(0,0,0,0.04);
