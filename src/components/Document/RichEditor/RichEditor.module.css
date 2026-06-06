@@ -78,8 +78,13 @@
 }
 .editorContent :global(.ProseMirror ul[data-type="taskList"] li > label) {
   flex-shrink: 0;
-  /* Align the checkbox with the first line of text instead of the block centre */
-  margin-top: 4px;
+  /* One-line-tall box centring the checkbox on the first line. All task items
+     are body size (bold ones too), so a single nudge lines them all up. */
+  display: inline-flex;
+  align-items: center;
+  height: 1.5em;
+  position: relative;
+  top: -2px;
 }
 .editorContent :global(.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]) {
   width: 14px;
