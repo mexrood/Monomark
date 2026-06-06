@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "marrow": {
+    "monomark": {
       "command": "npx",
       "args": [
         "-y",
@@ -8,7 +8,7 @@
         "http://127.0.0.1:7456/mcp",
         "--allow-http",
         "--header",
-        "Authorization: Bearer 81fe4069641ce9170130edc000ec42e3"
+        "Authorization: Bearer 0ffcea2ede051628bd92842df3b57860f2bdc1e7defb67992732d6b730256e74"
       ]
     }
   }

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { scrollRegistry } from '../../../utils/scrollRegistry'
 import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import { useVaultStore } from '../../../store/useVaultStore'
+import { useToastStore } from '../../../store/useToastStore'
 import { useAutoSave } from '../../../hooks/useAutoSave'
 import { attachImageFromBlob } from '../../../utils/attachImage'
 import { splitFrontmatter, joinFrontmatter } from '../../../utils/frontmatter'
@@ -44,6 +45,11 @@ export const RichEditor: React.FC = () => {
 
   const rawContent = document.kind === 'vault' ? document.content : ''
 
+  // Front-matter for the card, derived reactively from the live store content
+  // (updateContent always re-prepends it), so it stays correct after an
+  // external file reload — a ref would render stale.
+  const frontmatter = splitFrontmatter(rawContent).frontmatter
+
   // Stable "file key" — recreate the editor instance when the open file changes
   const fileKey = document.kind === 'vault' ? document.path : ''
 
@@ -77,6 +83,12 @@ export const RichEditor: React.FC = () => {
         // TaskItem layout (checkbox on a separate line from text).
         // Fix: flatten <div> → <p> and <br> → paragraph breaks.
         transformPastedHTML(html: string) {
+          // If the clipboard HTML carries real block structure (lists, tables,
+          // code), let ProseMirror parse it natively — the messenger-div
+          // flattening below would otherwise destroy nesting.
+          if (/<(?:ul|ol|li|table|tr|td|th|pre|blockquote)[\s>]/i.test(html)) {
+            return html
+          }
           let cleaned = html
           // <br> → paragraph break
           cleaned = cleaned.replace(/<br\s*\/?>\s*/gi, '</p><p>')
@@ -99,13 +111,15 @@ export const RichEditor: React.FC = () => {
             if (item.type.startsWith('image/')) {
               const blob = item.getAsFile()
               if (!blob) continue
-              attachImageFromBlob(blob).then(relPath => {
-                const { schema } = view.state
-                const node = schema.nodes.image?.create({ src: relPath })
-                if (!node) return
-                const tr = view.state.tr.replaceSelectionWith(node)
-                view.dispatch(tr)
-              })
+              attachImageFromBlob(blob)
+                .then(relPath => {
+                  const { schema } = view.state
+                  const node = schema.nodes.image?.create({ src: relPath })
+                  if (!node) return
+                  const tr = view.state.tr.replaceSelectionWith(node)
+                  view.dispatch(tr)
+                })
+                .catch(() => useToastStore.getState().error("Couldn't attach pasted image"))
               return true
             }
           }
@@ -123,14 +137,19 @@ export const RichEditor: React.FC = () => {
           for (const file of Array.from(files)) {
             if (file.type.startsWith('image/')) {
               const coords = view.posAtCoords({ left: event.clientX, top: event.clientY })
-              attachImageFromBlob(file).then(relPath => {
-                const { schema } = view.state
-                const node = schema.nodes.image?.create({ src: relPath })
-                if (!node) return
-                const pos = coords?.pos ?? view.state.doc.content.size
-                const tr = view.state.tr.insert(pos, node)
-                view.dispatch(tr)
-              })
+              // Resolve the drop position now (before the async write) so the
+              // image lands where it was dropped, not wherever the cursor ends up.
+              const dropPos = coords?.pos ?? view.state.selection.from
+              attachImageFromBlob(file)
+                .then(relPath => {
+                  const { schema } = view.state
+                  const node = schema.nodes.image?.create({ src: relPath })
+                  if (!node) return
+                  const pos = Math.min(dropPos, view.state.doc.content.size)
+                  const tr = view.state.tr.insert(pos, node)
+                  view.dispatch(tr)
+                })
+                .catch(() => useToastStore.getState().error("Couldn't attach dropped image"))
               return true
             }
           }
@@ -182,8 +201,8 @@ export const RichEditor: React.FC = () => {
 
   return (
     <div className={styles.editorWrap} ref={scrollRef}>
-      {frontmatterRef.current && (
-        <FrontmatterCard content={frontmatterRef.current} />
+      {frontmatter && (
+        <FrontmatterCard content={frontmatter} />
       )}
       <div className={styles.editorRow}>
         <DocumentOutline editor={editor} scrollContainer={scrollEl} />

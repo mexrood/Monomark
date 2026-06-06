@@ -30,6 +30,7 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 keyring = { version = "3", features = ["sync-secret-service", "windows-native", "apple-native"] }
 dirs = "6"
+getrandom = "0.2"
 [target.'cfg(windows)'.dependencies]
 winreg = "0.55"
 windows = { version = "0.58", features = ["Win32_Graphics_Dwm", "Win32_Foundation"] }

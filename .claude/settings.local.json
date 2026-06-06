@@ -1,5 +1,5 @@
 {
-  "enabledMcpjsonServers": ["marrow"],
+  "enabledMcpjsonServers": ["monomark"],
   "permissions": {
     "allow": [
       "Bash(node -e \"const s=require\\('sharp'\\); console.log\\(s.versions\\)\")",

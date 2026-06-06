@@ -34,6 +34,9 @@ Thumbs.db
 src-tauri/target/
 tauri-build/
 
+# Generated sidecar bundle (built by `npm run build:sidecar`)
+src-tauri/binaries/sidecar.js
+
 # Tauri signing keys (private key — NEVER commit)
 src-tauri/.tauri-key
 src-tauri/.tauri-key.pub

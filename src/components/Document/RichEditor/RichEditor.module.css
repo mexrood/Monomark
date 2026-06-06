@@ -72,16 +72,19 @@
 }
 .editorContent :global(.ProseMirror ul[data-type="taskList"] li) {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   padding: 2px 0;
 }
 .editorContent :global(.ProseMirror ul[data-type="taskList"] li > label) {
   flex-shrink: 0;
+  /* Align the checkbox with the first line of text instead of the block centre */
+  margin-top: 4px;
 }
 .editorContent :global(.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"]) {
   width: 14px;
   height: 14px;
+  margin: 0;
   border-radius: 3px;
   border: 1.5px solid var(--border-strong);
   background: transparent;

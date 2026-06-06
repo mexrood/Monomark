@@ -90,8 +90,11 @@ pub fn close_preview(app: AppHandle) -> Result<(), AppError> {
 
 #[tauri::command]
 pub fn quit_app(app: AppHandle) -> Result<(), AppError> {
+    // Kill the MCP sidecar first — app.exit / process::exit skip Drop, so
+    // without this the child `node` process is orphaned and holds port 7456.
+    super::sidecar::kill_sidecar(&app);
     app.exit(0);
-    // Fallback in case exit doesn't terminate immediately
+    // Fallback in case exit doesn't terminate immediately.
     process::exit(0);
 }
 

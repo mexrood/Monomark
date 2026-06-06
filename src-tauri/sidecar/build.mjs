@@ -24,13 +24,13 @@ await build({
     'electron': resolve(__dirname, 'electron-shim.ts'),
     'electron-store': resolve(__dirname, 'store-shim.ts'),
   },
-  // The MCP tools import `../store` which resolves to electron/store.ts.
+  // The MCP tools import `../store` which resolves to sidecar-core/store.ts.
   // We override it via a plugin since esbuild `alias` only handles bare specifiers.
   plugins: [{
     name: 'store-redirect',
     setup(build) {
-      // Redirect any import of electron/store.ts to our shim
-      build.onResolve({ filter: /[\\/]electron[\\/]store(\.ts)?$/ }, () => ({
+      // Redirect any import of sidecar-core/store.ts to our shim
+      build.onResolve({ filter: /[\\/]sidecar-core[\\/]store(\.ts)?$/ }, () => ({
         path: resolve(__dirname, 'store-shim.ts'),
       }))
     },

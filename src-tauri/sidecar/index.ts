@@ -13,7 +13,7 @@ import {
   ListToolsRequestSchema,
   CallToolRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
-import { tools } from '../../electron/mcp/tools/index'
+import { tools } from '../../sidecar-core/mcp/tools/index'
 
 const PORT = parseInt(process.env.MONOMARK_PORT || '7456', 10)
 const TOKEN = process.env.MONOMARK_MCP_TOKEN || ''

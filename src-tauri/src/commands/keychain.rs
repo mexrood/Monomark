@@ -90,17 +90,16 @@ pub fn get_mcp_token() -> Option<String> {
         .filter(|s| !s.is_empty())
 }
 
+/// Generate a 256-bit token from the OS CSPRNG, hex-encoded (64 chars).
+/// This guards full vault access over the local MCP HTTP server, so it must be
+/// cryptographically unpredictable — never a hash of the clock/PID.
 fn generate_token() -> String {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
-    use std::time::SystemTime;
-
-    let mut hasher = DefaultHasher::new();
-    SystemTime::now().hash(&mut hasher);
-    std::process::id().hash(&mut hasher);
-    format!(
-        "{:016x}{:016x}",
-        hasher.finish(),
-        hasher.finish().wrapping_mul(0x9E3779B97F4A7C15)
-    )
+    let mut bytes = [0u8; 32];
+    getrandom::getrandom(&mut bytes).expect("OS RNG (getrandom) failed");
+    let mut s = String::with_capacity(64);
+    for b in bytes {
+        use std::fmt::Write;
+        let _ = write!(s, "{:02x}", b);
+    }
+    s
 }

@@ -71,8 +71,24 @@ export const SlashExtension = Extension.create({
           function reposition(el: HTMLDivElement, clientRect: (() => DOMRect | null) | null) {
             const rect = clientRect?.()
             if (!rect) return
-            el.style.left = `${rect.left}px`
-            el.style.top  = `${rect.bottom + 4}px`
+            // Measure the rendered menu so we can flip up / clamp at the edges
+            // instead of letting it overflow off-screen near the bottom.
+            const menu = el.firstElementChild as HTMLElement | null
+            const mh = menu?.offsetHeight ?? 0
+            const mw = menu?.offsetWidth ?? 0
+            const vw = window.innerWidth
+            const vh = window.innerHeight
+
+            let top = rect.bottom + 4
+            if (top + mh > vh - 8) {
+              // Not enough room below — place above the caret.
+              top = Math.max(8, rect.top - mh - 4)
+            }
+            let left = rect.left
+            if (left + mw > vw - 8) left = Math.max(8, vw - mw - 8)
+
+            el.style.left = `${left}px`
+            el.style.top  = `${top}px`
           }
         },
       },

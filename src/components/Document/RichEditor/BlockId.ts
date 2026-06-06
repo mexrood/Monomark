@@ -111,13 +111,28 @@ function isEmptyBlock(node: PMNode): boolean {
   )
 }
 
+/** Item node types that live inside a list. */
+const LIST_ITEM_NODES = new Set(['listItem', 'taskItem'])
+
+/** True if the position resolves to somewhere inside a list/list-item. */
+function isInsideList(doc: PMNode, pos: number): boolean {
+  const $pos = doc.resolve(pos)
+  for (let d = $pos.depth; d > 0; d--) {
+    const name = $pos.node(d).type.name
+    if (LIST_NODES.has(name) || LIST_ITEM_NODES.has(name)) return true
+  }
+  return false
+}
+
 /**
- * Walk the editor document and make sure every block-level element is
- * followed by a BlockId node, regenerating any duplicate IDs. Dispatches a
- * single transaction (selection is mapped, so the cursor is preserved) and
- * returns whether anything changed.
+ * Walk the editor document and make sure every **top-level** block element is
+ * followed by a BlockId node, regenerating duplicate IDs. List items are
+ * deliberately excluded: block-id atoms living inside list items break cursor
+ * movement, item merging and copy-paste, so any found inside a list are
+ * stripped (which also cleans them out of the file on the next save).
  *
- * Idempotent — running it on an already-tagged document is a no-op.
+ * Dispatches a single transaction (selection is mapped, so the cursor is
+ * preserved) and returns whether anything changed. Idempotent.
  */
 export function ensureBlockIdsInEditor(editor: Editor): boolean {
   const { state } = editor
@@ -128,9 +143,16 @@ export function ensureBlockIdsInEditor(editor: Editor): boolean {
   const tr = state.tr
   const seen = new Set<string>()
 
-  // Pass 1 — regenerate missing/duplicate IDs on existing BlockId nodes.
+  // Pass 1 — dedupe IDs on top-level BlockId nodes; mark list-inner ones for
+  // removal. setNodeAttribute doesn't shift positions, so original positions
+  // stay valid for the deletes/inserts applied afterwards.
+  const removals: { from: number; to: number }[] = []
   doc.descendants((node, pos) => {
     if (node.type !== blockIdType) return true
+    if (isInsideList(doc, pos)) {
+      removals.push({ from: pos, to: pos + node.nodeSize })
+      return true
+    }
     const bid = node.attrs.bid as string | null
     if (!bid || seen.has(bid)) {
       let fresh = newBlockId()
@@ -143,20 +165,12 @@ export function ensureBlockIdsInEditor(editor: Editor): boolean {
     return true
   })
 
-  // Pass 2 — collect positions that need a fresh BlockId inserted.
+  // Pass 2 — collect insert positions for top-level content blocks only.
+  // Lists are skipped entirely (no per-item or per-list block-ids).
   const inserts: number[] = []
-
   doc.forEach((node, offset, index) => {
-    if (LIST_NODES.has(node.type.name)) {
-      // Each list item should end with a BlockId as its last child.
-      node.forEach((item, itemOffset) => {
-        const itemContentEnd = offset + 1 + itemOffset + 1 + item.content.size
-        const last = item.lastChild
-        if (!last || last.type !== blockIdType) {
-          inserts.push(itemContentEnd)
-        }
-      })
-    } else if (CONTENT_BLOCKS.has(node.type.name) && !isEmptyBlock(node)) {
+    if (LIST_NODES.has(node.type.name)) return
+    if (CONTENT_BLOCKS.has(node.type.name) && !isEmptyBlock(node)) {
       const next = index + 1 < doc.childCount ? doc.child(index + 1) : null
       if (!next || next.type !== blockIdType) {
         inserts.push(offset + node.nodeSize)
@@ -164,13 +178,17 @@ export function ensureBlockIdsInEditor(editor: Editor): boolean {
     }
   })
 
-  // Apply inserts high→low so earlier positions stay valid.
+  // Apply removals first (descending so positions stay valid), then inserts
+  // mapped through the transaction so they land at the right spot.
+  removals.sort((a, b) => b.from - a.from)
+  for (const r of removals) tr.delete(r.from, r.to)
+
   inserts.sort((a, b) => b - a)
   for (const pos of inserts) {
     let fresh = newBlockId()
     while (seen.has(fresh)) fresh = newBlockId()
     seen.add(fresh)
-    tr.insert(pos, blockIdType.create({ bid: fresh }))
+    tr.insert(tr.mapping.map(pos), blockIdType.create({ bid: fresh }))
   }
 
   if (tr.steps.length === 0) return false

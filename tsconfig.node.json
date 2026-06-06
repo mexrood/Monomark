@@ -6,12 +6,12 @@
     "moduleResolution": "bundler",
     "skipLibCheck": true,
     "strict": true,
-    "noEmit": false,
-    "outDir": "dist-electron",
-    "rootDir": "electron",
+    "noEmit": true,
+    "rootDir": "sidecar-core",
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["electron"]
+  "include": ["sidecar-core", "src-tauri/sidecar"]
 }

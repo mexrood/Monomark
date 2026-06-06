@@ -1,24 +1,21 @@
 {
   "name": "monomark",
-  "version": "1.0.43",
+  "version": "1.0.55",
   "description": "A focused markdown knowledge-base for thinking alongside Claude Code",
   "author": {
     "name": "Monomark",
     "email": "hello@marrow.app"
   },
   "license": "MIT",
-  "main": "dist-electron/main.js",
+  "type": "module",
   "scripts": {
-    "dev": "concurrently -n VITE,ELECTRON -c cyan,yellow \"vite\" \"electron .\"",
+    "dev": "npm run build:sidecar && tauri dev",
     "dev:vite": "vite",
-    "dev:tauri": "npm run build:sidecar && tauri dev",
-    "build": "tsc -p tsconfig.node.json && vite build && electron-builder --win",
+    "build": "npm run build:sidecar && tauri build",
     "build:vite": "vite build",
-    "tauri": "tauri",
     "build:sidecar": "node src-tauri/sidecar/build.mjs",
-    "build:tauri": "npm run build:sidecar && tauri build",
-    "build:x64": "tsc -p tsconfig.node.json && vite build && electron-builder --win --x64",
-    "build:dir": "tsc -p tsconfig.node.json && vite build && electron-builder --dir",
+    "tauri": "tauri",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "preview": "vite preview",
     "icons": "node scripts/generate-icons.mjs"
   },
@@ -27,25 +24,18 @@
     "notes",
     "knowledge-base",
     "claude",
-    "electron"
+    "tauri"
   ],
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.2",
-    "@types/auto-launch": "^5.0.5",
-    "@types/express": "^5.0.6",
     "@types/markdown-it": "^14.1.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "concurrently": "^9.2.1",
-    "electron": "^41.3.0",
-    "electron-builder": "^26.8.1",
     "esbuild": "^0.28.0",
     "sharp": "^0.34.5",
     "typescript": "^6.0.3",
-    "vite": "^8.0.10",
-    "vite-plugin-electron": "^0.29.1",
-    "vite-plugin-electron-renderer": "^0.14.6"
+    "vite": "^8.0.10"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
@@ -68,13 +58,7 @@
     "@tiptap/starter-kit": "^3.22.5",
     "@tiptap/suggestion": "^3.22.5",
     "@xenova/transformers": "^2.17.2",
-    "auto-launch": "^5.0.6",
     "chokidar": "^5.0.0",
-    "electron-log": "^5.4.3",
-    "electron-store": "^11.0.2",
-    "electron-updater": "^6.8.3",
-    "electron-window-state": "^5.0.3",
-    "express": "^5.2.1",
     "highlight.js": "^11.11.1",
     "lowlight": "^3.3.0",
     "lucide-react": "^1.11.0",

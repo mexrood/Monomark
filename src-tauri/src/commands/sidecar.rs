@@ -123,16 +123,26 @@ pub fn start_sidecar(app: AppHandle) -> Result<serde_json::Value, AppError> {
 
 #[tauri::command]
 pub fn stop_sidecar(app: AppHandle) -> Result<(), AppError> {
-    let state = app.state::<Mutex<SidecarState>>();
-    let mut state = state.lock().map_err(|e| AppError::from(e.to_string()))?;
+    kill_sidecar(&app);
+    Ok(())
+}
 
-    if let Some(ref mut child) = state.child {
+/// Synchronously kill the sidecar child (if any) and clear it. Safe to call
+/// from quit handlers and the app exit event — must run *before* the process
+/// terminates, since `process::exit` / `app.exit` skip `Drop` and would
+/// otherwise orphan the `node` process (leaking port 7456).
+pub fn kill_sidecar(app: &AppHandle) {
+    let state = app.state::<Mutex<SidecarState>>();
+    let mut guard = match state.lock() {
+        Ok(g) => g,
+        Err(_) => return,
+    };
+    if let Some(ref mut child) = guard.child {
         log::info!("Stopping sidecar PID {}", child.id());
         let _ = child.kill();
         let _ = child.wait();
     }
-    state.child = None;
-    Ok(())
+    guard.child = None;
 }
 
 #[tauri::command]

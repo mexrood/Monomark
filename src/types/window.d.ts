@@ -98,6 +98,10 @@ interface MarrowMcpAPI {
   getStreak(): Promise<number>
   onActivity(cb: (event: McpActivityEvent) => void): void
   offActivity(): void
+  // Claude integration (Tauri Rust commands)
+  installToClaudeDesktop(): Promise<{ ok: boolean; error?: string }>
+  getInstallStatus(): Promise<{ status: string }>
+  getClaudeCodeCommand(): Promise<string>
 }
 
 export interface McpActivityEvent {

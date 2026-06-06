@@ -56,6 +56,7 @@ pub fn run() {
                         }
                     }
                     "quit" => {
+                        commands::sidecar::kill_sidecar(app);
                         app.exit(0);
                     }
                     _ => {}
@@ -131,6 +132,13 @@ pub fn run() {
             commands::claude_integration::get_claude_desktop_status,
             commands::claude_integration::get_claude_code_command,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app_handle, event| {
+            // Safety net: ensure the MCP sidecar is killed on any exit path
+            // (the explicit quit handlers also do this before exiting).
+            if let tauri::RunEvent::Exit = event {
+                commands::sidecar::kill_sidecar(app_handle);
+            }
+        });
 }
