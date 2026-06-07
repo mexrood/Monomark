@@ -13,6 +13,7 @@ import type { Extensions } from '@tiptap/core'
 import { SlashExtension } from './SlashExtension'
 import { BlockId } from './BlockId'
 import { RelationArrow } from './RelationArrow'
+import { TrailingNode } from './TrailingNode'
 
 // Single lowlight instance shared across all editor instances
 const lowlight = createLowlight(common)
@@ -116,5 +117,8 @@ export function buildExtensions(_vaultPath: string): Extensions {
 
     // Inline ↗ at the end of blocks with LLM-judged useful relations.
     RelationArrow,
+
+    // Keep a clickable empty paragraph after trailing tables/code/lists.
+    TrailingNode,
   ]
 }
