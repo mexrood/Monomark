@@ -132,19 +132,32 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const { running } = get().mcpStatus
     if (running) {
       await window.marrow.mcp.stop()
-      set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'disabled' } }))
+      set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'disabled', error: null } }))
       // Persist disabled state
       try { await (window as any).__TAURI_INTERNALS__?.invoke?.('set_setting', { key: 'mcpEnabled', value: false }) } catch {}
     } else {
       try {
         const result = await window.marrow.mcp.start()
-        set(s => ({ mcpStatus: { ...s.mcpStatus, running: true, port: result.port, token: result.token, state: 'running' } }))
+        set(s => ({ mcpStatus: { ...s.mcpStatus, running: true, port: result.port, token: result.token, state: 'running', error: null } }))
         // Persist enabled state
         try { await (window as any).__TAURI_INTERNALS__?.invoke?.('set_setting', { key: 'mcpEnabled', value: true }) } catch {}
       } catch (err) {
         console.error('[MCP] Failed to start:', err)
-        set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'error', error: String(err) } }))
+        set(s => ({ mcpStatus: { ...s.mcpStatus, running: false, state: 'error', error: errorText(err) } }))
       }
     }
   },
 }))
+
+/** Extract a human-readable message from an unknown error (Tauri rejects with
+ *  a serialized `{ message }` object, which `String()` turns into the useless
+ *  "[object Object]"). */
+function errorText(err: unknown): string {
+  if (typeof err === 'string') return err
+  if (err && typeof err === 'object') {
+    const msg = (err as { message?: unknown }).message
+    if (typeof msg === 'string' && msg) return msg
+    try { return JSON.stringify(err) } catch { /* fall through */ }
+  }
+  return String(err)
+}

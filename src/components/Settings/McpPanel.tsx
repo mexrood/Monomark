@@ -132,7 +132,7 @@ export const McpPanel: React.FC = () => {
         {mcpStatus.state === 'error' && mcpStatus.error && (
           <div className={styles.errorBox}>
             <XCircle size={14} />
-            <span>{mcpStatus.error}</span>
+            <span>{typeof mcpStatus.error === 'string' ? mcpStatus.error : ((mcpStatus.error as { message?: string } | null)?.message ?? 'Server error')}</span>
           </div>
         )}
       </Section>

@@ -41,31 +41,42 @@ fn get_store_value(app: &AppHandle, key: &str) -> Option<String> {
 }
 
 /// Locate sidecar.js — checks multiple paths for dev vs production vs macOS bundle.
+///
+/// The bundled resource is declared as `binaries/sidecar.js` in tauri.conf.json,
+/// so in the installed app it lands in a `binaries/` subdirectory of the exe
+/// dir / resource dir — NOT directly beside the exe. We therefore check both
+/// layouts (with and without the `binaries/` prefix).
 fn find_sidecar(app: &AppHandle) -> Result<std::path::PathBuf, AppError> {
+    let exe_dir = std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|d| d.to_path_buf()));
+    let res_dir = app.path().resource_dir().ok();
+    let cwd = std::env::current_dir().ok();
+
     let candidates = vec![
-        // Production: next to the executable (Windows MSI, Linux AppImage)
-        std::env::current_exe()
-            .ok()
-            .and_then(|p| p.parent().map(|d| d.join("sidecar.js"))),
-        // Production: Tauri resource_dir (macOS .app bundle)
-        app.path().resource_dir().ok().map(|d| d.join("sidecar.js")),
+        // Production: bundled under binaries/ next to the exe (Windows NSIS/MSI).
+        exe_dir.as_ref().map(|d| d.join("binaries").join("sidecar.js")),
+        // Production: directly beside the exe (fallback).
+        exe_dir.as_ref().map(|d| d.join("sidecar.js")),
+        // Production: Tauri resource dir, with and without binaries/ (macOS .app).
+        res_dir.as_ref().map(|d| d.join("binaries").join("sidecar.js")),
+        res_dir.as_ref().map(|d| d.join("sidecar.js")),
         // Dev (Tauri): cwd is src-tauri/
-        std::env::current_dir()
-            .ok()
-            .map(|d| d.join("binaries").join("sidecar.js")),
+        cwd.as_ref().map(|d| d.join("binaries").join("sidecar.js")),
         // Dev (from project root)
-        std::env::current_dir()
-            .ok()
-            .map(|d| d.join("src-tauri").join("binaries").join("sidecar.js")),
+        cwd.as_ref().map(|d| d.join("src-tauri").join("binaries").join("sidecar.js")),
     ];
 
     for candidate in candidates.into_iter().flatten() {
         if candidate.exists() {
+            log::info!("Found sidecar at: {}", candidate.display());
             return Ok(candidate);
         }
     }
 
-    Err(AppError::from("sidecar.js not found"))
+    Err(AppError::from(
+        "sidecar.js not found (checked exe dir, resource dir and binaries/ subdirs)",
+    ))
 }
 
 #[tauri::command]
