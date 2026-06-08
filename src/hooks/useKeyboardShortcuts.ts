@@ -60,8 +60,8 @@ export function useKeyboardShortcuts() {
         return
       }
 
-      // Ctrl/Cmd + B — toggle sidebar
-      if (mod && e.key === 'b') {
+      // Ctrl/Cmd + \ — toggle sidebar (was Ctrl+B, which collided with editor bold)
+      if (mod && e.key === '\\') {
         e.preventDefault()
         useUIStore.getState().toggleSidebar()
         return
