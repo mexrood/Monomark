@@ -67,8 +67,6 @@ export function installTauriStub() {
       setVaultPath: async (path: string) => {
         await safeInvoke('vault_set_path', { path })
         await safeInvoke('start_watcher', { vaultPath: path })
-        // Auto-start MCP sidecar when vault is set
-        safeInvoke('start_sidecar').catch(() => {})
       },
       listTree: () => safeInvoke<any[]>('list_tree'),
       readFile: (absPath: string) => safeInvoke<string>('read_file', { path: absPath }),
