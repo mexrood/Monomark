@@ -14,7 +14,7 @@ import {
   CallToolRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
 import { tools } from '../../sidecar-core/mcp/tools/index'
-import { initDb, closeDb } from '../../sidecar-core/blocks/db'
+import { initDb, closeDb, getMcpStatsSince, getMcpStatsLifetime, getMcpStreak } from '../../sidecar-core/blocks/db'
 import { startIndexing } from '../../sidecar-core/blocks/indexer'
 
 const PORT = parseInt(process.env.MONOMARK_PORT || '7456', 10)
@@ -87,6 +87,34 @@ const httpServer = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' })
     res.end(JSON.stringify({ status: 'ok', vault: VAULT_PATH }))
     return
+  }
+
+  // Stats endpoints — require auth
+  if (req.url?.startsWith('/stats') && req.method === 'GET') {
+    const authHeader = req.headers.authorization ?? ''
+    if (!authHeader.startsWith('Bearer ') || authHeader.slice(7) !== TOKEN) {
+      res.writeHead(401, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ error: 'invalid_token' }))
+      return
+    }
+
+    if (req.url === '/stats/today') {
+      const startOfDay = new Date()
+      startOfDay.setHours(0, 0, 0, 0)
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(getMcpStatsSince(startOfDay.getTime())))
+      return
+    }
+    if (req.url === '/stats/lifetime') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(getMcpStatsLifetime()))
+      return
+    }
+    if (req.url === '/stats/streak') {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify({ streak: getMcpStreak() }))
+      return
+    }
   }
 
   // Only handle /mcp endpoint

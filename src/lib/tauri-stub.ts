@@ -136,9 +136,40 @@ export function installTauriStub() {
       offStatusChange: () => {},
       onNewCall: () => {},
       offNewCall: () => {},
-      getStatsToday: async () => ({ tokensSaved: 0, filesRead: 0, callCount: 0 }),
-      getStatsLifetime: async () => ({ tokensSaved: 0, filesRead: 0, callCount: 0 }),
-      getStreak: async () => 0,
+      getStatsToday: async () => {
+        try {
+          const status = await window.marrow?.mcp?.getStatus()
+          if (!status?.running || !status.token) return { tokensSaved: 0, filesRead: 0, callCount: 0 }
+          const res = await fetch(`http://127.0.0.1:${status.port}/stats/today`, {
+            headers: { Authorization: `Bearer ${status.token}` },
+          })
+          if (!res.ok) return { tokensSaved: 0, filesRead: 0, callCount: 0 }
+          return await res.json()
+        } catch { return { tokensSaved: 0, filesRead: 0, callCount: 0 } }
+      },
+      getStatsLifetime: async () => {
+        try {
+          const status = await window.marrow?.mcp?.getStatus()
+          if (!status?.running || !status.token) return { tokensSaved: 0, filesRead: 0, callCount: 0 }
+          const res = await fetch(`http://127.0.0.1:${status.port}/stats/lifetime`, {
+            headers: { Authorization: `Bearer ${status.token}` },
+          })
+          if (!res.ok) return { tokensSaved: 0, filesRead: 0, callCount: 0 }
+          return await res.json()
+        } catch { return { tokensSaved: 0, filesRead: 0, callCount: 0 } }
+      },
+      getStreak: async () => {
+        try {
+          const status = await window.marrow?.mcp?.getStatus()
+          if (!status?.running || !status.token) return 0
+          const res = await fetch(`http://127.0.0.1:${status.port}/stats/streak`, {
+            headers: { Authorization: `Bearer ${status.token}` },
+          })
+          if (!res.ok) return 0
+          const data = await res.json()
+          return data.streak ?? 0
+        } catch { return 0 }
+      },
       onActivity: () => {},
       offActivity: () => {},
       // Claude integration — write to Claude Desktop config / generate CLI command
