@@ -14,6 +14,8 @@ import {
   CallToolRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js'
 import { tools } from '../../sidecar-core/mcp/tools/index'
+import { initDb, closeDb } from '../../sidecar-core/blocks/db'
+import { startIndexing } from '../../sidecar-core/blocks/indexer'
 
 const PORT = parseInt(process.env.MONOMARK_PORT || '7456', 10)
 const TOKEN = process.env.MONOMARK_MCP_TOKEN || ''
@@ -152,15 +154,29 @@ const httpServer = http.createServer(async (req, res) => {
   res.end(JSON.stringify({ error: 'method_not_allowed' }))
 })
 
-httpServer.listen(PORT, '127.0.0.1', () => {
+httpServer.listen(PORT, '127.0.0.1', async () => {
   console.log(`[sidecar] MCP server running on http://127.0.0.1:${PORT}/mcp`)
   console.log(`[sidecar] vault: ${VAULT_PATH}`)
+
+  // Initialize the embeddings DB and start indexing so semantic tools work
+  if (VAULT_PATH) {
+    try {
+      await initDb(VAULT_PATH)
+      console.log('[sidecar] index DB initialized')
+      startIndexing(VAULT_PATH).catch(err =>
+        console.error('[sidecar] indexing failed:', err)
+      )
+    } catch (err) {
+      console.error('[sidecar] initDb failed:', err)
+    }
+  }
 })
 
 // ── Graceful shutdown ───────────────────────────────────────────────────────
 
 const shutdown = () => {
   console.log('[sidecar] shutting down...')
+  closeDb()
   for (const [, { transport }] of sessions) {
     transport.close?.()
   }
