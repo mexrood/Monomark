@@ -25,3 +25,9 @@ export class BrowserWindow {
     return []
   }
 }
+
+export const ipcMain = {
+  handle(_channel: string, _handler: (...args: unknown[]) => unknown) {},
+  on(_channel: string, _handler: (...args: unknown[]) => unknown) { return ipcMain },
+  removeHandler(_channel: string) {},
+}
