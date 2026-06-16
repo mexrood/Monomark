@@ -40,7 +40,10 @@
       "icons/icon.ico"
     ],
     "resources": [
-      "binaries/sidecar.js"
+      "binaries/sidecar.js",
+      "binaries/node_modules/sql.js/package.json",
+      "binaries/node_modules/sql.js/dist/sql-wasm.js",
+      "binaries/node_modules/sql.js/dist/sql-wasm.wasm"
     ]
   },
   "plugins": {

@@ -36,6 +36,7 @@ tauri-build/
 
 # Generated sidecar bundle (built by `npm run build:sidecar`)
 src-tauri/binaries/sidecar.js
+src-tauri/binaries/node_modules/
 
 # Tauri signing keys (private key — NEVER commit)
 src-tauri/.tauri-key

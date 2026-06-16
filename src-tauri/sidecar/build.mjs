@@ -4,6 +4,7 @@
 import { build } from 'esbuild'
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { cpSync, mkdirSync } from 'fs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -39,3 +40,13 @@ await build({
   minify: false,
   logLevel: 'info',
 })
+
+// Copy sql.js + WASM into binaries/node_modules/sql.js/ so createRequire
+// can find them in production (where global node_modules doesn't exist).
+const sqlDest = resolve(__dirname, '..', 'binaries', 'node_modules', 'sql.js', 'dist')
+const sqlSrc = resolve(__dirname, '..', '..', 'node_modules', 'sql.js')
+mkdirSync(sqlDest, { recursive: true })
+cpSync(resolve(sqlSrc, 'dist', 'sql-wasm.js'), resolve(sqlDest, 'sql-wasm.js'))
+cpSync(resolve(sqlSrc, 'dist', 'sql-wasm.wasm'), resolve(sqlDest, 'sql-wasm.wasm'))
+cpSync(resolve(sqlSrc, 'package.json'), resolve(sqlDest, '..', 'package.json'))
+console.log('Copied sql.js + WASM to binaries/node_modules/sql.js/')
